@@ -4,5 +4,7 @@ module Lib1
 
 -- | This function returns a list of words
 -- to be autocompleted in your program's repl.
+
+-- Hospital reception registration
 completions :: [String]
-completions = []
+completions = ["Cardiology", "Neurology", "Orthopedics", "Pediatrics"]
