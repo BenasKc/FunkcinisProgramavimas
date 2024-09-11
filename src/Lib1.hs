@@ -7,4 +7,12 @@ module Lib1
 
 -- Hospital reception registration
 completions :: [String]
-completions = ["Cardiology", "Neurology", "Orthopedics", "Pediatrics"]
+completions = [
+    "Cardiology", "Neurology",
+    "Orthopedics", "Pediatrics",
+    "PATIENT", "BOOK",
+    "APPOINTMENT", "REGISTER",
+    "UPDATE", "SEARCH",
+    "FEMALE", "MALE", 
+    "OTHER"
+    ]
