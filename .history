@@ -1,3 +1,61 @@
+VIEW ALL APPOINTMENTS
+BOOK APPOINTMENT 5 Dr Abraham Lebz Cardiology 01-04-2025 15:55
+BOOK APPOINTMENT 5 Dr Matt Newman Neurology 12-08-2024 12:35
+SEARCH PATIENT Age = 58
+UPDATE PATIENT 7 Name Martha Creox
+SEARCH PATIENT Gender = Female
+REGISTER PATIENT 7 Martha Bronhs 58 Female Los Angeles oldemail@something.org
+SEARCH PATIENT Name = Luke Reed
+REGISTER PATIENT 6 Luke Reed 45 Male New York 87 6841305
+REGISTER PATIENT 5 John Doe 18 Male Washington DC example@example.com
+asd
+BOOK APPOINTMENT 5 Dr Matt Newman Neurology 12-08-2024 12:35
+VIEW ALL APPOINTMENTS
+BOOK APPOINTMENT 5 Dr Abraham Lebz Cardiology 01-04-2025 15:55
+BOOK APPOINTMENT 5 Dr Matt Newman Neurology 12-08-2024 12:35
+SEARCH PATIENT Age = 58
+UPDATE PATIENT 7 Name Martha Creox
+UPDATE PATIENT 7 Name = Martha Creox
+SEARCH PATIENT Age = 558
+SEARCH PATIENT Age = 58
+SEARCH PATIENT Age > 58
+SEARCH PATIENT Gender = Female
+REGISTER PATIENT 7 Martha Bronhs 58 Female Los Angeles oldemail@something.org
+SEARCH PATIENT Name = Luke Reed
+SEARCH PATIENT Name = Luke
+REGISTER PATIENT 6 Luke Reed 45 Male New York 87 6841305
+REGISTER PATIENT 5 John Doe 18 Male Washington DC example@example.com
+VIEW ALL APPOINTMENTS
+BOOK APPOINTMENT 5 Dr Benita A Neurology 12-08-2024 12:35
+BOOK APPOINTMENT 5 Dr Benita A Neurology 12-08-2024 12:35
+VIEW ALL APPOINTMENTS
+BOOK APPOINTMENT 5 Dr Benita A Neurology 12-08-2024 12:35
+VIEW ALL APPOINTMENTS
+SEARCH PATIENT Name = John Doe
+REGISTER PATIENT 5 John Doe 18 Male Washington DC example@example.com
+Q
+QUIT
+quit
+SEARCH PATIENT Name = Johnd Doed
+SEARCH PATIENT Name = John Doe
+UPDATE PATIENT 5 Name Johnd Doed
+SEARCH PATIENT Name = John Doe
+UPDATE PATIENT 5 Name John Doe
+UPDATE PATIENT 5 Gender  Female
+UPDATE PATIENT 5 Gender = Female
+UPDATE PATIENT 5 Gender = Male
+UPDATE PATIENT 5 Gender = John
+UPDATE PATIENT 5 Email = John
+UPDATE PATIENT 5 Name = John Doe
+UPDATE PATIENT 5 Name = John
+UPDATE PATIENT Name = John
+SEARCH PATIENT Name = John Doe
+REGISTER PATIENT 5 John Doe 18 Male Washington DC example@example.com
+REGISTER PATIENT
+VIEW ALL APPOINTMENTS
+BOOK APPOINTMENT 5 Dr Benita A Neurology 12-08-2024 12:35
+BOOK APPOINTMENT
+Cardiology
 :q
 q
 q
