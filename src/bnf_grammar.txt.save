@@ -1,0 +1,68 @@
+<system> ::= <command> | <command> <system>
+
+<command> ::= <register_patient> 
+            | <book_appointment> 
+            | <update_patient_details> 
+            | <search_patient>
+
+<register_patient> ::= "REGISTER PATIENT" <patient_info>
+
+<book_appointment> ::= "BOOK APPOINTMENT" <appointment_info>
+
+<update_patient_details> ::= "UPDATE PATIENT" <patient_id> <update_info>
+
+<search_patient> ::= "SEARCH PATIENT" <search_criteria>
+
+<patient_info> ::= <patient_id> <name> <age> <gender> <address> <contact_info>
+
+<appointment_info> ::= <patient_id> <doctor_name> <department> <date> <time>
+
+<update_info> ::= <field_name> "=" <new_value>
+
+<search_criteria> ::= <field_name> "=" <value>
+
+<patient_id> ::= <integer>
+
+<name> ::= <first_name> " " <last_name>
+
+<first_name> ::= <letter> | <letter> <first_name>
+
+<last_name> ::= <letter> | <letter> <last_name>
+
+<age> ::= <integer>
+
+<gender> ::= "MALE" | "FEMALE" | "OTHER"
+
+<contact_info> ::= <phone_number> | <email_address>
+
+<phone_number> ::= "+" <country_code> <digit> <digit> <digit> <digit> <digit> <digit> <digit> <digit> <digit> <digit>
+
+<email_address> ::= <username> "@" <domain>
+
+<username> ::= <letter> | <letter> <username>
+
+<domain> ::= <letter> | <letter> <domain>
+
+<address> ::= <string>
+
+<doctor_name> ::= <title> " " <first_name> " " <last_name>
+
+<title> ::= "Dr." | "Prof."
+
+<department> ::= "Cardiology" | "Neurology" | "Orthopedics" | "Pediatrics" | ...
+
+<date> ::= <digit> <digit> "-" <digit> <digit> "-" <digit> <digit> <digit> <digit>
+
+<time> ::= <digit> <digit> ":" <digit> <digit>
+
+<field_name> ::= "Name" | "Age" | "Gender" | "Contact" | "Address"
+
+<string> ::= <letter> | <letter> <string> | <digit> | <digit> <string> | " "
+
+<digit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+
+<letter> ::= "a" | "b" | "c" | ... | "z" | "A" | "B" | "C" | ... | "Z"
+
+<integer> ::= <digit> | <digit> <integer>
+
+<country_code> ::= <digit> | <digit> <country_code>
