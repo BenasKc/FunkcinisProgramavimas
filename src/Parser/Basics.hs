@@ -1,4 +1,4 @@
-module Basics where
+module Lib2 where
 
 import Data.Char (ord)
 import Data.List (find)
@@ -251,35 +251,35 @@ isLetter c
   | otherwise = False
 
 partition :: (a -> Bool) -> [a] -> ([a], [a])
-partition _ [] = ([], []) -- Base case: empty list
+partition _ [] = ([], []) 
 partition p (x : xs) =
-  let (yes, no) = partition p xs -- Recursive call
+  let (yes, no) = partition p xs
    in if p x
-        then (x : yes, no) -- If the predicate is true, include in the first list
-        else (yes, x : no) -- If false, include in the second list
+        then (x : yes, no)
+        else (yes, x : no)
 
 createCountryCode :: String -> Either String CountryCode
-createCountryCode [] = Left "No digits" -- Handle empty input
+createCountryCode [] = Left "No digits"
 createCountryCode [d] =
   case makedgt d of
-    Right digit -> Right (SingleDigitCC digit) -- If there's only one digit, construct a SingleDigitCC
-    Left errMsg -> Left errMsg -- Handle invalid digit case
+    Right digit -> Right (SingleDigitCC digit)
+    Left errMsg -> Left errMsg
 createCountryCode (d : ds) =
   case makedgt d of
     Right digit ->
       -- Handle valid digit case
       case createCountryCode ds of
-        Left errMsg -> Left errMsg -- Propagate error if any
-        Right rest -> Right (ManyDigitCC digit rest) -- Construct CountryCode
-    Left _ -> Left "Invalid digit" -- Handle invalid digit case
+        Left errMsg -> Left errMsg
+        Right rest -> Right (ManyDigitCC digit rest)
+    Left _ -> Left "Invalid digit"
 
 cc2str :: Either String CountryCode -> Either String String
-cc2str (Left errMsg) = Left errMsg -- Propagate any error
+cc2str (Left errMsg) = Left errMsg 
 cc2str (Right (SingleDigitCC c)) = Right [dgt2char c]
 cc2str (Right (ManyDigitCC c rest)) =
   case cc2str (Right rest) of
-    Right restStr -> Right ([dgt2char c] ++ restStr) -- Concatenate the current digit with the rest
-    Left errMsg -> Left errMsg -- Propagate any errors from recursive call
+    Right restStr -> Right ([dgt2char c] ++ restStr) 
+    Left errMsg -> Left errMsg 
 
 printCountryCode :: Either String CountryCode -> IO ()
 printCountryCode cc =
@@ -287,7 +287,6 @@ printCountryCode cc =
     Right str -> putStrLn $ "Country Code: " ++ str
     Left errMsg -> putStrLn $ "Error: " ++ errMsg
 
--- Updated str2field function using Either
 str2field :: String -> Either String FieldName
 str2field "Name" = Right NameField
 str2field "Age" = Right AgeField
@@ -296,7 +295,6 @@ str2field "Contact" = Right ContactField
 str2field "Address" = Right AddressField
 str2field unknown = Left $ "Invalid field: " ++ unknown
 
--- Function to print FieldName or an error message
 printFieldName :: Either String FieldName -> IO ()
 printFieldName (Right fieldName) = putStrLn $ "Field: " ++ show fieldName
 printFieldName (Left errMsg) = putStrLn $ "Error: " ++ errMsg
@@ -317,26 +315,22 @@ parseTime str
 isValidTime :: Int -> Int -> Bool
 isValidTime h m = h >= 0 && h <= 23 && m >= 0 && m < 60
 
--- Function to convert hours and minutes to a formatted string without printf
 formatTime :: Int -> Int -> String
 formatTime hours minutes =
   let formattedHours = if hours < 10 then '0' : show hours else show hours
       formattedMinutes = if minutes < 10 then '0' : show minutes else show minutes
    in formattedHours ++ ":" ++ formattedMinutes
 
--- Function to print Time or an error message
 printTime :: Either String Time -> IO ()
 printTime (Right (Time hours minutes)) =
   putStrLn $ "Time: " ++ formatTime hours minutes
 printTime (Left errMsg) =
   putStrLn $ "Error: " ++ errMsg
 
--- Function to check if the date is valid
 isValidDate :: Int -> Int -> Int -> Bool
 isValidDate day month year =
   day >= 1 && day <= daysInMonth month year && month >= 1 && month <= 12
 
--- Helper function to calculate the number of days in a given month
 daysInMonth :: Int -> Int -> Int
 daysInMonth month year
   | month == 2 && isLeapYear year = 29
@@ -344,11 +338,9 @@ daysInMonth month year
   | month `elem` [4, 6, 9, 11] = 30
   | otherwise = 31
 
--- Check if a year is a leap year
 isLeapYear :: Int -> Bool
 isLeapYear year = (year `mod` 4 == 0 && year `mod` 100 /= 0) || (year `mod` 400 == 0)
 
--- Updated parseDate function using Either
 parseDate :: String -> Either String Date
 parseDate str
   | length str == 10
@@ -365,7 +357,6 @@ parseDate str
             else Left "Invalid date: day, month, or year out of range"
   | otherwise = Left "Invalid format: expected DD-MM-YYYY"
 
--- Function to print Date or an error message
 printDate :: Either String Date -> IO ()
 printDate (Right (Date day month year)) =
   putStrLn $ "Date: " ++ show day ++ "-" ++ show month ++ "-" ++ show year
@@ -382,7 +373,6 @@ deptToStr General_Surgery = "General Surgery"
 deptToStr Infectious_Diseases = "Infectious Diseases"
 deptToStr Oncology = "Oncology"
 
--- Updated strToDept function using Either
 strToDept :: String -> Either String Department
 strToDept "Cardiology" = Right Cardiology
 strToDept "Neurology" = Right Neurology
@@ -394,23 +384,19 @@ strToDept "Infectious Diseases" = Right Infectious_Diseases
 strToDept "Oncology" = Right Oncology
 strToDept unknown = Left $ "Invalid department: " ++ unknown
 
--- Function to print Department or an error message
 printDepartment :: Either String Department -> IO ()
 printDepartment (Right dept) = putStrLn $ "Department: " ++ show dept
 printDepartment (Left errMsg) = putStrLn $ "Error: " ++ errMsg
 
--- Function to convert a Title to its String representation
 title2str :: Title -> String
 title2str Dr = "Dr"
 title2str Prof = "Prof"
 
--- Function to convert a String to a Title, using Either for error handling
 str2title :: String -> Either String Title
 str2title "Dr" = Right Dr
 str2title "Prof" = Right Prof
 str2title unknown = Left $ "Invalid title: " ++ unknown
 
--- Function to print Title or an error message
 printTitle :: Either String Title -> IO ()
 printTitle (Right title) = putStrLn $ "Title: " ++ title2str title
 printTitle (Left errMsg) = putStrLn $ "Error: " ++ errMsg
@@ -420,35 +406,32 @@ makeDoctorName (Right title) name surname
   | not (null name) && not (null surname) = Right (DoctorName title name surname)
   | null name = Left "Name cannot be empty."
   | null surname = Left "Surname cannot be empty."
-makeDoctorName (Left err) _ _ = Left err -- Propagate the error from the title
+makeDoctorName (Left err) _ _ = Left err
 
--- Function to convert a DoctorName to a String, now using Either
 doctorName2str :: Either String DoctorName -> String
 doctorName2str (Right (DoctorName title name surname)) =
   title2str title ++ " " ++ name ++ " " ++ surname
 doctorName2str (Left errMsg) = "Error: " ++ errMsg
 
--- Print function for demonstrating results
 printDoctorName :: Either String DoctorName -> IO ()
 printDoctorName result = putStrLn (doctorName2str result)
 
--- Parse a string to create a DoctorName, using Either for error handling
 parseDoctorName :: String -> Either String DoctorName
 parseDoctorName str =
   case words str of
     (titleStr : firstName : lastName : []) ->
       case str2title titleStr of
         Right title -> Right (DoctorName title firstName lastName)
-        Left errMsg -> Left errMsg -- Propagate the title error
+        Left errMsg -> Left errMsg 
     (titleStr : firstName : []) ->
       case str2title titleStr of
-        Right title -> Right (DoctorName title firstName "") -- No last name provided
+        Right title -> Right (DoctorName title firstName "")
         Left errMsg -> Left errMsg
-    _ -> Left "Invalid format" -- Handle invalid input format
+    _ -> Left "Invalid format"
 
 makeAddress :: String -> Either String Address
 makeAddress addr
-  | length addr > 5 = Right (Address addr) -- Valid address if longer than 5 characters
+  | length addr > 5 = Right (Address addr)
   | otherwise = Left "Invalid address: must be longer than 5 characters"
 
 addr2str :: Address -> String
@@ -464,19 +447,16 @@ isValidDomain str (v : valids) =
       if v == domain then True else isValidDomain domain valids
 isValidDomain _ _ = False
 
--- Convert a string to a Domain using Either for error handling
 str2domain :: String -> Either String Domain
 str2domain domain =
   if isValidDomain domain validDomains
     then Right (Domain domain)
     else Left "Invalid domain"
 
--- Convert Domain to String using Either
 domain2str :: Either String Domain -> String
 domain2str (Right (Domain domain)) = "Domain: " ++ domain
 domain2str (Left errMsg) = "Error: " ++ errMsg
 
--- Print function for Domain
 printDomain :: Either String Domain -> IO ()
 printDomain result = putStrLn (domain2str result)
 
@@ -485,12 +465,10 @@ makeUsername usern
   | length usern > 3 = Right (Username usern)
   | otherwise = Left "Username must be longer than 3 characters"
 
--- Convert Username to String using Either
 username2str :: Either String Username -> String
 username2str (Right (Username usern)) = usern
 username2str (Left errMsg) = "Error: " ++ errMsg
 
--- Print function for Username
 printUsername :: Either String Username -> IO ()
 printUsername result = putStrLn (username2str result)
 
@@ -499,31 +477,26 @@ makeEmail usern domain
   | isValidDomain domain validDomains && length usern > 3 = Right (Email usern domain)
   | otherwise = Left "Invalid email format"
 
--- Convert Email to String using Either
 email2str :: Either String Email -> String
 email2str (Right (Email usern domain)) = usern ++ "@" ++ domain
 email2str (Left errMsg) = "Error: " ++ errMsg
 
--- Print function for Email
 printEmail :: Either String Email -> IO ()
 printEmail result = putStrLn (email2str result)
 
--- Convert a string to a PhoneNumber using Either for error handling
 makePhoneNumber :: Either String CountryCode -> String -> Either String PhoneNumber
 makePhoneNumber (Right cc) num
   | length num > 7 && length num < 14 && isAllNumOrPipe num = Right (PhoneNumber cc num)
   | otherwise = Left "Invalid phone number format"
 makePhoneNumber (Left errMsg) _ = Left errMsg
 
--- Convert PhoneNumber to String using Either
 pn2str :: Either String PhoneNumber -> String
 pn2str (Right (PhoneNumber cc num)) =
   case cc2str (Right cc) of
-    Right ccStr -> "+" ++ ccStr ++ num -- Successfully convert CountryCode to string
-    Left errMsg -> "Error: " ++ errMsg -- Handle error from cc2str
-pn2str (Left errMsg) = "Error: " ++ errMsg -- Handle error directly from Either
+    Right ccStr -> "+" ++ ccStr ++ num 
+    Left errMsg -> "Error: " ++ errMsg 
+pn2str (Left errMsg) = "Error: " ++ errMsg 
 
--- Print function for PhoneNumber
 printPhoneNumber :: Either String PhoneNumber -> IO ()
 printPhoneNumber result = putStrLn (pn2str result)
 
@@ -538,30 +511,29 @@ makeContactInfo str =
     Right (usern, domain) ->
       case makeEmail usern domain of
         Right email -> Right (EmailContact email)
-        Left errMsg -> Left errMsg -- Propagate email error
+        Left errMsg -> Left errMsg
     Left _ ->
-      -- If parseEmail fails
       case parsePhoneNumber str of
         Right pn -> Right (PhoneNumberContact pn)
-        Left errMsg -> Left errMsg -- Propagate phone number error
+        Left errMsg -> Left errMsg
 
 parseEmail :: String -> Either String (String, String)
 parseEmail str =
   case break (== '@') str of
     (username, '@' : domain)
-      | not (null username) && not (null domain) -> Right (username, domain) -- Successful parse
-      | otherwise -> Left "Invalid email format: Username or domain is empty" -- Handle empty parts
-    _ -> Left "Invalid email format: Missing '@' symbol" -- Handle missing '@'
+      | not (null username) && not (null domain) -> Right (username, domain)
+      | otherwise -> Left "Invalid email format: Username or domain is empty" 
+    _ -> Left "Invalid email format: Missing '@' symbol"
 
 parsePhoneNumber :: String -> Either String PhoneNumber
 parsePhoneNumber str =
-  let parts = words str -- Split the string by whitespace
+  let parts = words str
    in case parts of
         [cc, ln]
           | all isDigit cc && all isDigit ln && length cc <= 3 && length ln >= 7 && length ln <= 14 ->
-              case createCountryCode cc of -- Create the CountryCode here
-                Right countryCode -> Right (PhoneNumber countryCode ln) -- Valid country code and local number
-                Left errMsg -> Left errMsg -- Propagate error from createCountryCode
+              case createCountryCode cc of
+                Right countryCode -> Right (PhoneNumber countryCode ln)
+                Left errMsg -> Left errMsg
           | not (all isDigit cc) -> Left "Invalid country code: must be numeric"
           | not (all isDigit ln) -> Left "Invalid local number: must be numeric"
         _ -> Left "Invalid phone number format: expected format is '<country code> <local number>', local number min 7 max 14"
@@ -576,14 +548,12 @@ makeGender "Female" = Right Female
 makeGender "Other" = Right Other
 makeGender _ = Left "Invalid gender"
 
--- Function to convert Gender to String using Either
 gender2str :: Either String Gender -> String
 gender2str (Right Male) = "Male"
 gender2str (Right Female) = "Female"
 gender2str (Right Other) = "Other"
 gender2str (Left errMsg) = "Error: " ++ errMsg
 
--- Function to print the gender information
 printGender :: Either String Gender -> IO ()
 printGender gender = putStrLn $ gender2str gender
 
@@ -592,12 +562,10 @@ makeAge age
   | age >= 0 = Right (Age age)
   | otherwise = Left "Invalid age"
 
--- Function to convert Age to Int using Either
 age2int :: Either String Age -> Int
 age2int (Right (Age age)) = age
-age2int (Left _) = -1 -- Return -1 for errors
+age2int (Left _) = -1 
 
--- Function to print the age information
 printAge :: Either String Age -> IO ()
 printAge age =
   case age of
@@ -609,23 +577,19 @@ makeLastName lname
   | isAllAlpha lname && length lname > 0 = Right (LastName lname)
   | otherwise = Left "Invalid last name: must be non-empty and contain only alphabetic characters"
 
--- Function to convert LastName to String using Either
 lname2str :: Either String LastName -> String
 lname2str (Right (LastName lname)) = lname
 lname2str (Left errMsg) = "Error: " ++ errMsg
 
--- Function to create FirstName using Either
 makeFirstName :: String -> Either String FirstName
 makeFirstName fname
   | isAllAlpha fname && length fname > 0 = Right (FirstName fname)
   | otherwise = Left "Invalid first name: must be non-empty and contain only alphabetic characters"
 
--- Function to convert FirstName to String using Either
 fname2str :: Either String FirstName -> String
 fname2str (Right (FirstName fname)) = fname
 fname2str (Left errMsg) = "Error: " ++ errMsg
 
--- Function to create Name using Either
 makeName :: String -> Either String Name
 makeName name =
   let parts = words name
@@ -638,12 +602,10 @@ makeName name =
             else Left "Only first name and last name must be provided"
         Left errMsg -> Left errMsg
 
--- Function to convert Name to String using Either
 name2str :: Either String Name -> String
 name2str (Right (Name f l)) = (fname2str (Right f)) ++ " " ++ (lname2str (Right l))
 name2str (Left errMsg) = "Error: " ++ errMsg
 
--- Function to print Name using Either
 printName :: Either String Name -> IO ()
 printName name =
   case name of
@@ -655,12 +617,10 @@ makePatientId id
   | id > -1 = Right (PatientId id)
   | otherwise = Left "Invalid Patient ID: must be a non-negative integer"
 
--- Function to convert PatientId to Int using Either
 pi2int :: Either String PatientId -> Int
 pi2int (Right (PatientId id)) = id
 pi2int (Left _) = -1 -- Return -1 if there is an error
 
--- Function to print PatientId using Either
 printPatientId :: Either String PatientId -> IO ()
 printPatientId pid =
   case pid of
@@ -696,46 +656,46 @@ parseContactInfo :: [String] -> Either String ContactInfo
 parseContactInfo contactInfo
   | not (null contactInfo) =
       case makeContactInfo (unwords contactInfo) of
-        Right validContact -> Right validContact -- If makeContactInfo succeeds
-        Left errMsg -> Left errMsg -- If makeContactInfo fails
-  | otherwise = Left "Invalid Contact Info" -- Handle empty contact info
+        Right validContact -> Right validContact
+        Left errMsg -> Left errMsg 
+  | otherwise = Left "Invalid Contact Info"
 
 parsePatientInfo :: String -> Either String (PatientId, Name, Age, Gender, ContactInfo, Address)
 parsePatientInfo str =
   let parts = words str
    in if length parts >= 6
         then
-          let idStr = parts !! 0 -- Patient ID
+          let idStr = parts !! 0
               fullName = (parts !! 1) ++ " " ++ (parts !! 2)
-              ageStr = parts !! 3 -- Age
-              genderStr = parts !! 4 -- Gender
-              addressStr = unwords (drop 5 parts) -- Everything after the first five as address
-              (addrParts, contactParts) = splitAt 2 (words addressStr) -- Assuming address has two words and the rest is contact info
-           in case readEither idStr of -- Safely parsing Patient ID
+              ageStr = parts !! 3 
+              genderStr = parts !! 4 
+              addressStr = unwords (drop 5 parts)
+              (addrParts, contactParts) = splitAt 2 (words addressStr)
+           in case readEither idStr of
                 Right pid ->
-                  case makePatientId pid of -- Converting to PatientId
+                  case makePatientId pid of
                     Right patientId ->
-                      case makeName fullName of -- Validating and creating Name
+                      case makeName fullName of 
                         Right name ->
-                          case readEither ageStr of -- Safely parsing age
+                          case readEither ageStr of
                             Right age ->
-                              case makeAge age of -- Validating and creating Age
+                              case makeAge age of
                                 Right validAge ->
-                                  case makeGender genderStr of -- Validating and creating Gender
+                                  case makeGender genderStr of
                                     Right gender ->
-                                      case parseContactInfo contactParts of -- Parsing contact info
+                                      case parseContactInfo contactParts of 
                                         Right contactInfo ->
-                                          case makeAddress (unwords addrParts) of -- Creating Address
+                                          case makeAddress (unwords addrParts) of
                                             Right address ->
                                               Right (patientId, name, validAge, gender, contactInfo, address)
-                                            Left err -> Left err -- Invalid address
-                                        Left err -> Left err -- Invalid contact info
-                                    Left err -> Left err -- Invalid gender
-                                Left err -> Left err -- Invalid age
-                            Left _ -> Left "Invalid age: not a valid integer" -- Invalid age string
-                        Left err -> Left err -- Invalid name
-                    Left err -> Left err -- Invalid Patient ID
-                Left _ -> Left "Invalid Patient ID: not a valid integer" -- Invalid Patient ID string
+                                            Left err -> Left err 
+                                        Left err -> Left err
+                                    Left err -> Left err
+                                Left err -> Left err
+                            Left _ -> Left "Invalid age: not a valid integer"
+                        Left err -> Left err 
+                    Left err -> Left err
+                Left _ -> Left "Invalid Patient ID: not a valid integer" 
         else Left "Invalid input: Not enough parts"
 
 parsePatientId :: String -> Either String PatientId
@@ -752,13 +712,13 @@ parseAppointment str =
   let parts = words str
    in if length parts >= 9 && head parts == "BOOK" && parts !! 1 == "APPOINTMENT"
         then
-          let patientId = parsePatientId (parts !! 2) -- Parse Patient ID
-              doctorTitleEither = str2title (parts !! 3) -- Extract the title as Either
-              doctorFirstName = parts !! 4 -- First name
-              doctorLastName = parts !! 5 -- Last name
-              department = strToDept (parts !! 6) -- Department
-              date = parseDate (parts !! 7) -- Date
-              time = parseTime (parts !! 8) -- Time
+          let patientId = parsePatientId (parts !! 2)
+              doctorTitleEither = str2title (parts !! 3)
+              doctorFirstName = parts !! 4
+              doctorLastName = parts !! 5
+              department = strToDept (parts !! 6)
+              date = parseDate (parts !! 7)
+              time = parseTime (parts !! 8)
            in case (patientId, doctorTitleEither, department, date, time) of
                 (Right pid, Right title, Right dept, Right d, Right t) ->
                   case makeDoctorName (Right title) doctorFirstName doctorLastName of
@@ -790,7 +750,7 @@ parseUpdatePatientDetails str =
         then
           let patientIdStr = parts !! 2
               fieldNameStr = parts !! 3
-              fieldValueStr = unwords (drop 4 parts) -- The rest of the string after the field name
+              fieldValueStr = unwords (drop 4 parts)
            in case (parsePatientId patientIdStr, str2field fieldNameStr) of
                 (Right patientId, Right fieldName) -> Right (patientId, UpdateInfo fieldName fieldValueStr)
                 (Left errMsg, _) -> Left errMsg
@@ -818,7 +778,7 @@ parseRegisterPatient str =
               genderStr = parts !! 6
               addressPart1 = parts !! 7
               addressPart2 = parts !! 8
-              contactInfoStr = unwords (drop 9 parts) -- Take everything after part 9 as contact info
+              contactInfoStr = unwords (drop 9 parts)
            in case (readEither pidStr :: Either String Int) of
                 Right pidInt ->
                   case makePatientId pidInt of
@@ -838,7 +798,6 @@ parseRegisterPatient str =
                                     Left errMsg -> Left ("Invalid contact info: " ++ errMsg)
                                 Left errMsg -> Left ("Invalid name: " ++ errMsg)
                             Left errMsg -> Left ("Error parsing age: " ++ errMsg)
-                          
                         (Left errMsg, _) -> Left ("Invalid age: " ++ errMsg)
                         (_, Left errMsg) -> Left ("Invalid gender: " ++ errMsg)
                     Left errMsg -> Left ("Error reading the Id:" ++ errMsg)
@@ -861,8 +820,8 @@ parseCommand str =
 
 parseSystem :: String -> Either String System
 parseSystem str =
-  let commandStrings = lines str -- Split the input into separate lines (commands)
-   in fmap System (mapM parseCommand commandStrings) -- Parse each command
+  let commandStrings = lines str
+   in fmap System (mapM parseCommand commandStrings)
 
 
 initialHospitalState :: HospitalState
@@ -892,34 +851,28 @@ executeCommand hs (SearchPatient criteria) =
     Left errMsg -> Left errMsg
 
 
--- Helper function to get patient information by ID
 getPatientInfo :: HospitalState -> PatientId -> Either String PatientInfo
 getPatientInfo hs pid =
   case find (\pInfo -> patientId pInfo == pid) (patientInfos hs) of
     Just pInfo -> Right pInfo
     Nothing -> Left $ "Patient with ID " ++ show pid ++ " not found."
 
--- Function to add an appointment to hospital state
 addAppointment :: HospitalState -> Appointment -> HospitalState
 addAppointment hs app = hs { appointments = app : appointments hs }
 
--- Function to add patient information to hospital state
 addPatientInfo :: HospitalState -> PatientInfo -> HospitalState
 addPatientInfo hs pInfo = hs { patientInfos = pInfo : patientInfos hs }
 
--- Function to update patient details in hospital state
 updatePatientDetails :: HospitalState -> PatientId -> UpdateInfo -> Either String HospitalState
 updatePatientDetails hs pid updateInfo = do
   pInfo <- getPatientInfo hs pid
   updatedPInfo <- applyUpdate pInfo updateInfo
   return $ hs { patientInfos = updateList (\p -> patientId p == pid) (const updatedPInfo) (patientInfos hs) }
 
--- Function to search for patient information based on criteria
 searchPatient :: HospitalState -> SearchCriteria -> Either String [PatientInfo]
 searchPatient hs (SearchCriteria fieldName value) =
   Right $ filter (matchesCriteria fieldName value) (patientInfos hs)
 
--- Utility function to apply an update to PatientInfo
 applyUpdate :: PatientInfo -> UpdateInfo -> Either String PatientInfo
 applyUpdate pInfo (UpdateInfo fieldName value) =
   case fieldName of
@@ -944,11 +897,11 @@ applyUpdate pInfo (UpdateInfo fieldName value) =
         Right addr -> Right $ pInfo { patientAddress = addr }
         Left errMsg -> Left errMsg
 
--- Function to update a list based on a predicate and update function
+
 updateList :: (a -> Bool) -> (a -> a) -> [a] -> [a]
 updateList _ _ [] = []
 updateList predicate updateFunc (x:xs)
-  | predicate x = updateFunc x : xs  -- Update the first matching element and leave the rest unchanged
+  | predicate x = updateFunc x : xs 
   | otherwise = x : updateList predicate updateFunc xs
 
 
@@ -956,7 +909,7 @@ instance Read Age where
   readsPrec _ str = case reads str of
     [(age, rest)] -> [(Age age, rest)]
     _ -> []
--- Function to check if a patient matches a list of criteria
+
 matchesCriteria :: FieldName -> String -> PatientInfo -> Bool
 matchesCriteria field value patient =
   case field of
@@ -965,7 +918,6 @@ matchesCriteria field value patient =
         [(age, "")] -> patientAge patient == age
         _ -> False
 
-    -- Compare Gender
     GenderField ->
       case makeGender value of
         Right gender -> patientGender patient == gender
@@ -976,24 +928,18 @@ matchesCriteria field value patient =
         Right nm -> patientName patient == nm
         Left _ -> False
 
-    -- Compare Address
     AddressField ->
       case makeAddress value of
-        Right addr -> patientAddress patient == addr  -- Assuming `Address` is a simple string
+        Right addr -> patientAddress patient == addr
         Left _ -> False
 
-    -- Compare Contact Info (assuming `patientContacts` is a string or can be parsed)
     ContactField ->
       case parseContactInfo [value] of
         Right contactInfo -> patientContacts patient == contactInfo
         Left _ -> False
 
-    -- If the field name doesn't match any known fields
     _ -> False
     
-
-
--- Function to retrieve and display all appointments
 getAllAppointments :: HospitalState -> [Appointment]
 getAllAppointments hs = appointments hs
 

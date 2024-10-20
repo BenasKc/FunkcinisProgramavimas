@@ -4,16 +4,19 @@
             | <book_appointment> 
             | <update_patient_details> 
             | <search_patient>
+            | <view_all_appointments>
+
+<view_all_patients> ::== "VIEW ALL APPOINTMENTS"
 
 <register_patient> ::= "REGISTER PATIENT" <patient_info>
-
+ 
 <book_appointment> ::= "BOOK APPOINTMENT" <appointment_info>
 
 <update_patient_details> ::= "UPDATE PATIENT" <patient_id> <update_info>
 
 <search_patient> ::= "SEARCH PATIENT" <search_criteria>
 
-<patient_info> ::= <patient_id> <name> <age> <gender> <contact_info> <address>
+<patient_info> ::= <patient_id> <name> <age> <gender> <address> <contact_info>
 
 <appointment_info> ::= <patient_id> <doctor_name> <department> <date> <time>
 
@@ -21,13 +24,13 @@
 
 <search_criteria> ::= <field_name> "=" <value>
 
-<patient_id> ::= "PATIENT-" <integer>
+<patient_id> ::= <integer>
 
 <name> ::= <first_name> " " <last_name>
 
-<first_name> ::= <letter> | <letter> <first_name>
+<first_name> ::= <string>
 
-<last_name> ::= <letter> | <letter> <last_name>
+<last_name> ::= <string>
 
 <age> ::= <integer>
 
@@ -35,13 +38,11 @@
 
 <contact_info> ::= <phone_number> | <email_address>
 
-<phone_number> ::= "+" <country_code> <digit> <digit> <digit> <digit> <digit> <digit> <digit> <digit> <digit> <digit>
+<phone_number> ::= <country_code> <string>
 
 <email_address> ::= <username> "@" <domain>
 
-<username> ::= <letter> | <letter> <username>
-
-<domain> ::= <letter> | <letter> <domain>
+<domain> ::= <string>
 
 <address> ::= <string>
 
@@ -51,9 +52,9 @@
 
 <department> ::= "Cardiology" | "Neurology" | "Orthopedics" | "Pediatrics" | ...
 
-<date> ::= <digit> <digit> "-" <digit> <digit> "-" <digit> <digit> <digit> <digit>
+<date> ::= <Int> <Int> <Int>
 
-<time> ::= <digit> <digit> ":" <digit> <digit>
+<time> ::= <Int> <Int>
 
 <field_name> ::= "Name" | "Age" | "Gender" | "Contact" | "Address"
 
