@@ -1,0 +1,16 @@
+printInteger_ (makeInteger_ "4513")
+printCountryCode (createCountryCode "370a")
+printCountryCode (createCountryCode "370")
+parseDoctorName "Dr John Doe"
+parseDoctorName "Somebody I guess"
+parsePatientId "15"
+parseSearchCriteria "SEARCH PATIENT Name = John"
+parseAppointment ("BOOK APPOINTMENT 5 Dr John Doe Neurology 12-11-2024 12:35")
+parsePatientInfo "5 John Doe 15 Male Washington DC example@example.com"
+parsePatientInfo "5 JOhn Doe 35 Male Washington DC 370 67842763"
+parseAppointment "BOOK APPOINTMENT 5 Dr John Doe Neurology 12-12-2024 15:30"
+parseUpdatePatientDetails "UPDATE PATIENT 5 Name John"
+parseRegisterPatient "REGISTER PATIENT John Doe 15 Male Washington DC 370 6782468746"
+parseCommand "REGISTER PATIENT John Doe 15 Male Washington DC 370 6782468746"
+parseSystem "BOOK APPOINTMENT 5 Dr John Doe Neurology 12-12-2024 15:30\n\
+\REGISTER PATIENT 5 John Doe 15 Male Washington DC 370 6782468746"
