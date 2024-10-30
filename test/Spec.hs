@@ -31,5 +31,5 @@ unitTests = testGroup "Lib1 tests"
       Lib2.parseQuery "BOOK APPOINTMENT 5 Dr Matt Newman Neurology 12-08-2024 12:35" @?= Right (BookAppointmentQuery (Appointment {appointmentPatientId = PatientId 5, appointmentDoctorName = DoctorName Dr "Matt" "Newman", appointmentDepartment = Neurology, appointmentDate = Date 12 8 2024, appointmentTime = Time 12 35})),
 
     testCase "Invalid Query Parsing" $
-      Lib2.parseQuery "asd" @?= Left "Unknown command"
+      Lib2.parseQuery "asd" @?= Left "Unknown command. Errors encountered: \n- Register: Unknown command:asd Invalid command: expected 'REGISTER PATIENT'\n- Appointment: Invalid command: Incorrect syntax. Must start with 'BOOK APPOINTMENT'.\n- Update: Incorrect syntax. Must start with 'UPDATE PATIENT'.\n- Search: Incorrect syntax. Must start with 'SEARCH PATIENT'."
   ]
