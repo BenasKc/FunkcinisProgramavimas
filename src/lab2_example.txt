@@ -1,5 +1,5 @@
 REGISTER PATIENT 5 John Doe 18 Male Washington DC example@example.com
-REGISTER PATIENT 6 Luke Reed 45 Male New York 87 6841305
+REGISTER PATIENT 6 Luke Reed 45 Male New York 87|6841305
 SEARCH PATIENT Name = Luke Reed
 REGISTER PATIENT 7 Martha Bronhs 58 Female Los Angeles oldemail@something.org
 SEARCH PATIENT Gender = Female

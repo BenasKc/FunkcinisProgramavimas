@@ -35,6 +35,7 @@ module Lib2
 import Data.Char (ord)
 import Data.List (find)
 import Text.Read (readEither)
+import Data.Char (toLower)
 
 -- | An entity which represets user input.
 -- It should match the grammar from Laboratory work #1.
@@ -82,7 +83,7 @@ emptyState :: State
 emptyState = initialHospitalState
 
 -- | Updates a state according to a query.
--- This allows your program to share the state
+-- This allows program to share the state
 -- between repl iterations.
 -- Right contains an optional message to print and
 -- an updated program's state.
@@ -139,6 +140,7 @@ data Department
 data Title = Dr | Prof
   deriving (Show, Eq)
 
+-- <doctor_name> ::= <title> " " <first_name> " " <last_name>
 data DoctorName = DoctorName Title String String
   deriving (Show, Eq)
 
@@ -187,6 +189,7 @@ data Appointment = Appointment
   }
   deriving (Show, Eq)
 
+-- <patient_info> ::= <patient_id> <name> <age> <gender> <address> <contact_info> 
 data PatientInfo = PatientInfo
   { patientId :: PatientId,
     patientName :: Name,
@@ -236,6 +239,23 @@ data Criteria
   | AgeInRange Int Int
   | GenderIs Gender
   deriving (Show, Eq)
+
+parseNWords :: String -> Int -> ([String], String)
+parseNWords str n = go str [] 0
+  where
+    go [] acc _ = (reverse acc, [])
+    go s acc count
+      | count >= n = (reverse acc, s) 
+      | otherwise =
+          let (word, rest) = span (/= ' ') s  -- Extract a word until a space
+              trimmedRest = dropWhile (== ' ') rest  -- Skip spaces after the word
+          in if null word
+               then go trimmedRest acc count  -- Continue if no word found
+               else go trimmedRest (word : acc) (count + 1)  -- Add word to accumulator
+
+trim :: String -> String
+trim = f . f
+  where f = reverse . dropWhile (== ' ')
 
 makedgt :: Char -> Either String Digit
 makedgt c
@@ -404,19 +424,30 @@ printFieldName :: Either String FieldName -> IO ()
 printFieldName (Right fieldName) = putStrLn $ "Field: " ++ show fieldName
 printFieldName (Left errMsg) = putStrLn $ "Error: " ++ errMsg
 
+
+parseFieldName :: String -> Either String (FieldName, String)
+parseFieldName input =
+  let (fieldStr, remaining) = parseNWords input 1
+  in case str2field (fieldStr !! 0) of
+       Right fieldName -> Right (fieldName, remaining)
+       Left errMsg -> Left errMsg
+       
 -- <time> ::= <Int> <Int>
-parseTime :: String -> Either String Time
-parseTime str
-  | length str == 5
-      && str !! 2 == ':'
-      && all isDigit (take 2 str)
-      && all isDigit (drop 3 str) =
-      let hours = read (take 2 str) :: Int
-          minutes = read (drop 3 str) :: Int
-       in if isValidTime hours minutes
-            then Right (Time hours minutes)
-            else Left "Invalid time: hours must be 0-23 and minutes must be 0-59"
-  | otherwise = Left "Invalid format: expected HH:MM"
+parseTime :: String -> Either String (Time, String)
+parseTime str =
+  let trimmedStr = dropWhile (== ' ') str  -- Trim leading spaces
+      (timePart, remaining) = parseNWords trimmedStr 1  -- Extract the first word (time)
+  in if length (timePart !! 0) == 5
+        && (timePart !! 0) !! 2 == ':'
+        && all isDigit (take 2 (timePart !! 0))
+        && all isDigit (drop 3 (timePart !! 0))
+     then
+        let hours = read (take 2 (timePart !! 0)) :: Int
+            minutes = read (drop 3 (timePart !! 0)) :: Int
+        in if isValidTime hours minutes
+              then Right (Time hours minutes, remaining)  -- Return Time and remaining string
+              else Left "Invalid time: hours must be 0-23 and minutes must be 0-59"
+     else Left "Invalid format: expected HH:MM"
 
 isValidTime :: Int -> Int -> Bool
 isValidTime h m = h >= 0 && h <= 23 && m >= 0 && m < 60
@@ -448,21 +479,24 @@ isLeapYear :: Int -> Bool
 isLeapYear year = (year `mod` 4 == 0 && year `mod` 100 /= 0) || (year `mod` 400 == 0)
 
 -- <date> ::= <Int> <Int> <Int>
-parseDate :: String -> Either String Date
-parseDate str
-  | length str == 10
-      && str !! 2 == '-'
-      && str !! 5 == '-'
-      && all isDigit (take 2 str)
-      && all isDigit (take 2 (drop 3 str))
-      && all isDigit (drop 6 str) =
-      let day = read (take 2 str) :: Int
-          month = read (take 2 (drop 3 str)) :: Int
-          year = read (drop 6 str) :: Int
-       in if isValidDate day month year
-            then Right (Date day month year)
-            else Left "Invalid date: day, month, or year out of range"
-  | otherwise = Left "Invalid format: expected DD-MM-YYYY"
+parseDate :: String -> Either String (Date, String)
+parseDate str =
+  let trimmedStr = dropWhile (== ' ') str  -- Trim leading spaces
+      (datePart, remaining) = parseNWords trimmedStr 1  -- Extract the first word (date)
+  in if length (datePart !! 0) == 10
+        && (datePart !! 0) !! 2 == '-'
+        && (datePart !! 0) !! 5 == '-'
+        && all isDigit (take 2 (datePart !! 0))
+        && all isDigit (take 2 (drop 3 (datePart !! 0)))
+        && all isDigit (drop 6 (datePart !! 0))
+     then
+        let day = read (take 2 (datePart !! 0)) :: Int
+            month = read (take 2 (drop 3 (datePart !! 0))) :: Int
+            year = read (drop 6 (datePart !! 0)) :: Int
+        in if isValidDate day month year
+              then Right (Date day month year, remaining)  -- Return Date and remaining string
+              else Left "Invalid date: day, month, or year out of range"
+     else Left "Invalid format: expected DD-MM-YYYY"
 
 printDate :: Either String Date -> IO ()
 printDate (Right (Date day month year)) =
@@ -480,16 +514,20 @@ deptToStr General_Surgery = "General Surgery"
 deptToStr Infectious_Diseases = "Infectious Diseases"
 deptToStr Oncology = "Oncology"
 
-strToDept :: String -> Either String Department
-strToDept "Cardiology" = Right Cardiology
-strToDept "Neurology" = Right Neurology
-strToDept "Orthopedics" = Right Orthopedics
-strToDept "Pediatrics" = Right Pediatrics
-strToDept "Critical Care" = Right Critical_Care
-strToDept "General Surgery" = Right General_Surgery
-strToDept "Infectious Diseases" = Right Infectious_Diseases
-strToDept "Oncology" = Right Oncology
-strToDept unknown = Left $ "Invalid department: " ++ unknown
+strToDept :: String -> Either String (Department, String)
+strToDept input =
+  let trimmedInput = dropWhile (== ' ') input  -- Trim leading spaces
+      (deptPart, remaining) = parseNWords trimmedInput 1  -- Extract the first word (department)
+  in case (deptPart !! 0) of
+       "Cardiology"          -> Right (Cardiology, remaining)
+       "Neurology"           -> Right (Neurology, remaining)
+       "Orthopedics"        -> Right (Orthopedics, remaining)
+       "Pediatrics"         -> Right (Pediatrics, remaining)
+       "Critical Care"      -> Right (Critical_Care, remaining)
+       "General Surgery"     -> Right (General_Surgery, remaining)
+       "Infectious Diseases" -> Right (Infectious_Diseases, remaining)
+       "Oncology"           -> Right (Oncology, remaining)
+       _                     -> Left $ "Invalid department: " ++ (deptPart !! 0)
 
 printDepartment :: Either String Department -> IO ()
 printDepartment (Right dept) = putStrLn $ "Department: " ++ show dept
@@ -503,6 +541,14 @@ str2title :: String -> Either String Title
 str2title "Dr" = Right Dr
 str2title "Prof" = Right Prof
 str2title unknown = Left $ "Invalid title: " ++ unknown
+
+parseTitle :: String -> Either String (Title, String)
+parseTitle input =
+  let trimmedInput = dropWhile (== ' ') input
+      (titleStr, remaining) = span (/= ' ') trimmedInput
+  in case str2title titleStr of
+       Right title -> Right (title, dropWhile (== ' ') remaining)
+       Left errMsg -> Left errMsg 
 
 printTitle :: Either String Title -> IO ()
 printTitle (Right title) = putStrLn $ "Title: " ++ title2str title
@@ -523,24 +569,13 @@ doctorName2str (Left errMsg) = "Error: " ++ errMsg
 printDoctorName :: Either String DoctorName -> IO ()
 printDoctorName result = putStrLn (doctorName2str result)
 
--- <doctor_name> ::= <title> " " <first_name> " " <last_name>
-parseDoctorName :: String -> Either String DoctorName
-parseDoctorName str =
-  case words str of
-    (titleStr : firstName : lastName : []) ->
-      case str2title titleStr of
-        Right title -> Right (DoctorName title firstName lastName)
-        Left errMsg -> Left errMsg 
-    (titleStr : firstName : []) ->
-      case str2title titleStr of
-        Right title -> Right (DoctorName title firstName "")
-        Left errMsg -> Left errMsg
-    _ -> Left "Invalid format"
 
-makeAddress :: String -> Either String Address
-makeAddress addr
-  | length addr > 5 = Right (Address addr)
-  | otherwise = Left "Invalid address: must be longer than 5 characters"
+makeAddress :: String -> Either String (Address, String)
+makeAddress addr = 
+  let (addressWords, remaining) = parseNWords addr 2
+  in if length addressWords == 2
+       then Right (Address (unwords addressWords), remaining)
+       else Left "Invalid address: must contain exactly 2 words"
 
 addr2str :: Address -> String
 addr2str (Address str) = str
@@ -637,26 +672,29 @@ parseEmail str =
 -- <phone_number> ::= <country_code> <string>
 parsePhoneNumber :: String -> Either String PhoneNumber
 parsePhoneNumber str =
-  let parts = words str
-   in case parts of
-        [cc, ln]
-          | all isDigit cc && all isDigit ln && length cc <= 3 && length ln >= 7 && length ln <= 14 ->
-              case createCountryCode cc of
-                Right countryCode -> Right (PhoneNumber countryCode ln)
-                Left errMsg -> Left errMsg
-          | not (all isDigit cc) -> Left "Invalid country code: must be numeric"
-          | not (all isDigit ln) -> Left "Invalid local number: must be numeric"
-        _ -> Left "Invalid phone number format: expected format is '<country code> <local number>', local number min 7 max 14"
+  case break (== '|') str of
+    (cc, '|':ln)  -- Split into country code and local number
+      | all isDigit cc && all isDigit ln && length cc <= 3 && length ln >= 7 && length ln <= 14 ->
+          case createCountryCode cc of
+            Right countryCode -> Right (PhoneNumber countryCode ln)
+            Left errMsg -> Left errMsg
+      | not (all isDigit cc) -> Left "Invalid country code: must be numeric"
+      | not (all isDigit ln) -> Left "Invalid local number: must be numeric"
+    _ -> Left "Invalid phone number format: expected format is '<country code>|<local number>', local number min 7 max 14"
 
 printContactInfo :: Either String ContactInfo -> IO ()
 printContactInfo contactInfo =
   putStrLn $ ci2str contactInfo
 
-makeGender :: String -> Either String Gender
-makeGender "Male" = Right Male
-makeGender "Female" = Right Female
-makeGender "Other" = Right Other
-makeGender _ = Left "Invalid gender"
+makeGender :: String -> Either String (Gender, String)
+makeGender input =
+  let trimmedInput = trim input
+      (genderStr, remaining) = parseNWords trimmedInput 1 
+  in case map toLower (genderStr !! 0) of
+       "male"   -> Right (Male, remaining)
+       "female" -> Right (Female, remaining)
+       "other"  -> Right (Other, remaining)
+       _        -> Left "Invalid gender"
 
 gender2str :: Either String Gender -> String
 gender2str (Right Male) = "Male"
@@ -671,6 +709,18 @@ makeAge :: Int -> Either String Age
 makeAge age
   | age >= 0 = Right (Age age)
   | otherwise = Left "Invalid age"
+
+parseAge :: String -> Either String (Age, String)
+parseAge input =
+  let trimmedInput = trim input
+      (ageStr, remaining) = parseNWords trimmedInput 1 
+  in if all isDigit (ageStr !! 0)  
+      then 
+          let age = read (ageStr !! 0) :: Int 
+          in case makeAge age of 
+              Right validAge -> Right (validAge, remaining) 
+              Left errMsg -> Left errMsg
+      else Left "Invalid age: must be numeric"
 
 age2int :: Either String Age -> Int
 age2int (Right (Age age)) = age
@@ -700,17 +750,18 @@ fname2str :: Either String FirstName -> String
 fname2str (Right (FirstName fname)) = fname
 fname2str (Left errMsg) = "Error: " ++ errMsg
 
-makeName :: String -> Either String Name
-makeName name =
-  let parts = words name
-   in case makeFirstName (parts !! 0) of
-        Right fnme ->
-          if length parts == 2
-            then case makeLastName (parts !! 1) of
-              Right lnme -> Right (Name fnme lnme)
-              Left errMsg -> Left errMsg
-            else Left "Only first name and last name must be provided"
-        Left errMsg -> Left errMsg
+makeName :: String -> Either String (Name, String)
+makeName input =
+  let (parts, remaining) = parseNWords input 2  -- Extract the first two words and the remaining string
+  in case parts of
+       [firstName, lastName] ->  -- Check if we got exactly two parts
+         case makeFirstName firstName of
+           Right fnm ->
+             case makeLastName lastName of
+               Right lnm -> Right (Name fnm lnm, remaining)  -- Return Name object and remaining string
+               Left errMsg -> Left errMsg  -- Handle error from makeLastName
+           Left errMsg -> Left errMsg  -- Handle error from makeFirstName
+       _ -> Left "Only first name and last name must be provided"
 
 name2str :: Either String Name -> String
 name2str (Right (Name f l)) = (fname2str (Right f)) ++ " " ++ (lname2str (Right l))
@@ -722,93 +773,30 @@ printName name =
     Right n -> putStrLn $ "Name: " ++ name2str (Right n)
     Left errMsg -> putStrLn $ "Error: " ++ errMsg
 
-makePatientId :: Int -> Either String PatientId
-makePatientId id
-  | id > -1 = Right (PatientId id)
-  | otherwise = Left "Invalid Patient ID: must be a non-negative integer"
-
-pi2int :: Either String PatientId -> Int
-pi2int (Right (PatientId id)) = id
-pi2int (Left _) = -1 -- Return -1 if there is an error
-
-printPatientId :: Either String PatientId -> IO ()
-printPatientId pid =
-  case pid of
-    Right p -> putStrLn $ "Patient ID: " ++ show (pi2int (Right p))
-    Left errMsg -> putStrLn $ "Error: " ++ errMsg
-
-printPatientInfo :: Either String (PatientId, Name, Age, Gender, ContactInfo, Address) -> IO ()
-printPatientInfo result =
-  case result of
-    Right (pid, name, age, gender, contactInfo, address) ->
-      putStrLn $
-        "Patient Info:\n"
-          ++ "ID: "
-          ++ show pid
-          ++ "\n"
-          ++ "Name: "
-          ++ show name
-          ++ "\n"
-          ++ "Age: "
-          ++ show age
-          ++ "\n"
-          ++ "Gender: "
-          ++ show gender
-          ++ "\n"
-          ++ "Contact Info: "
-          ++ show contactInfo
-          ++ "\n"
-          ++ "Address: "
-          ++ show address
-    Left errMsg -> putStrLn $ "Error: " ++ errMsg
+makePatientId :: String -> Either String (PatientId, String)
+makePatientId input =
+  let trimmedInput = trim input
+      (idStr, remaining) = parseNWords trimmedInput 1 
+  in if all isDigit (idStr !! 0)  
+      then
+          let id = read (idStr !! 0) :: Int
+          in if id >= 0 
+             then Right (PatientId id, remaining)  
+             else Left "Invalid Patient ID: must be a non-negative integer"
+      else Left "Invalid Patient ID: must be numeric"
 
 -- <contact_info> ::= <phone_number> | <email_address>
-parseContactInfo :: [String] -> Either String ContactInfo
-parseContactInfo contactInfo
-  | not (null contactInfo) =
-      case makeContactInfo (unwords contactInfo) of
-        Right validContact -> Right validContact
-        Left errMsg -> Left errMsg 
-  | otherwise = Left "Invalid Contact Info"
 
--- <patient_info> ::= <patient_id> <name> <age> <gender> <address> <contact_info> 
-parsePatientInfo :: String -> Either String (PatientId, Name, Age, Gender, ContactInfo, Address)
-parsePatientInfo str =
-  let parts = words str
-   in if length parts >= 6
-        then
-          let idStr = parts !! 0
-              fullName = (parts !! 1) ++ " " ++ (parts !! 2)
-              ageStr = parts !! 3 
-              genderStr = parts !! 4 
-              addressStr = unwords (drop 5 parts)
-              (addrParts, contactParts) = splitAt 2 (words addressStr)
-           in case readEither idStr of
-                Right pid ->
-                  case makePatientId pid of
-                    Right patientId ->
-                      case makeName fullName of 
-                        Right name ->
-                          case readEither ageStr of
-                            Right age ->
-                              case makeAge age of
-                                Right validAge ->
-                                  case makeGender genderStr of
-                                    Right gender ->
-                                      case parseContactInfo contactParts of 
-                                        Right contactInfo ->
-                                          case makeAddress (unwords addrParts) of
-                                            Right address ->
-                                              Right (patientId, name, validAge, gender, contactInfo, address)
-                                            Left err -> Left err 
-                                        Left err -> Left err
-                                    Left err -> Left err
-                                Left err -> Left err
-                            Left _ -> Left "Invalid age: not a valid integer"
-                        Left err -> Left err 
-                    Left err -> Left err
-                Left _ -> Left "Invalid Patient ID: not a valid integer" 
-        else Left "Invalid input: Not enough parts"
+parseContactInfo :: String -> Either String (ContactInfo, String)
+parseContactInfo contactInfo = 
+  if null contactInfo
+  then Left "Invalid Contact Info"
+  else
+    let (contactWords, remaining) = parseNWords contactInfo 1
+    in case makeContactInfo (unwords contactWords) of
+         Right validContact -> Right (validContact, remaining)
+         Left errMsg -> Left errMsg
+
 
 -- <patient_id> ::= <integer>
 parsePatientId :: String -> Either String PatientId
@@ -816,111 +804,95 @@ parsePatientId str =
   case reads str of
     [(x, "")] ->
       case makePatientId x of
-        Right patientId -> Right patientId
+        Right patientId -> Right (fst patientId)
         Left errMsg -> Left "Invalid ID"
     _ -> Left "Incorrect patient ID"
 
 -- <appointment_info> ::= <patient_id> <doctor_name> <department> <date> <time>
 parseAppointment :: String -> Either String Appointment
 parseAppointment str =
-  let parts = words str
-   in if length parts >= 9 && head parts == "BOOK" && parts !! 1 == "APPOINTMENT"
-        then
-          let patientId = parsePatientId (parts !! 2)
-              doctorTitleEither = str2title (parts !! 3)
-              doctorFirstName = parts !! 4
-              doctorLastName = parts !! 5
-              department = strToDept (parts !! 6)
-              date = parseDate (parts !! 7)
-              time = parseTime (parts !! 8)
-           in case (patientId, doctorTitleEither, department, date, time) of
-                (Right pid, Right title, Right dept, Right d, Right t) ->
-                  case makeDoctorName (Right title) doctorFirstName doctorLastName of
-                    Right doctorName -> Right (Appointment pid doctorName dept d t)
-                    Left errMsg -> Left ("Error creating DoctorName: " ++ errMsg)
-                (Left errMsg, _, _, _, _) -> Left ("Error parsing Patient ID: " ++ errMsg)
-                (_, Left errMsg, _, _, _) -> Left ("Error parsing Doctor title: " ++ errMsg)
-                (_, _, Left errMsg, _, _) -> Left "Error parsing Department"
-                (_, _, _, Left errMsg, _) -> Left "Error parsing Date"
-                (_, _, _, _, Left errMsg) -> Left "Error parsing Time"
-        else Left "Invalid appointment format: Expected 'BOOK APPOINTMENT <patientId> <doctorTitle> <firstName> <lastName> <department> <date> <time>'"
+  case verifyBookAppointment str of
+    Right remainingStr ->
+      case makePatientId remainingStr of
+        Right (pid, afterPid) ->
+          case parseTitle afterPid of
+            Right (title, afterTitle) ->
+              case parseNWords afterTitle 2 of
+                ([firstName, lastName], afterName) ->
+                  case strToDept afterName of
+                    Right (dept, afterDept) ->
+                      case parseDate afterDept of
+                        Right (date, afterDate) ->
+                          case parseTime afterDate of
+                            Right (time, _) ->
+                              case makeDoctorName (Right title) firstName lastName of
+                                Right doctorName -> Right (Appointment pid doctorName dept date time)
+                                Left errMsg -> Left ("Error creating DoctorName: " ++ errMsg)
+                            Left errMsg -> Left ("Error parsing Time: " ++ errMsg)
+                        Left errMsg -> Left ("Error parsing Date: " ++ errMsg)
+                    Left errMsg -> Left ("Error parsing Department: " ++ errMsg)
+            Left errMsg -> Left ("Error parsing Doctor title: " ++ errMsg)
+        Left errMsg -> Left ("Error parsing Patient ID: " ++ errMsg)
+    Left errMsg -> Left ("Invalid command: " ++ errMsg)
 
 -- <search_criteria> ::= <field_name> "=" <value>
 parseSearchCriteria :: String -> Either String SearchCriteria
 parseSearchCriteria str =
-  let parts = words str
-   in if parts !! 0 == "SEARCH" && parts !! 1 == "PATIENT" && parts !! 3 == "="
-        then
-          let fieldName = str2field (parts !! 2)
-              value = (drop 4 parts)
-           in case fieldName of
-                Right fName -> Right (SearchCriteria fName (unwords value))
-                Left errMsg -> Left errMsg
-        else Left "Incorret syntax. Must be as follows: SEARCH PATIENT <field_name> = <value>"
+  case verifySearchPatient str of
+    Right remainingStr -> 
+      case parseFieldName remainingStr of
+        Right (fieldName, restAfterField) ->
+          let (equalsSign, restAfterEquals) = parseNWords restAfterField 1
+          in if (equalsSign !! 0) == "="
+             then Right (SearchCriteria fieldName (trim restAfterEquals))
+             else Left "Incorrect syntax: expected '=' after field name"
+        Left errMsg -> Left errMsg
+    Left errMsg -> Left errMsg
 
 -- <update_patient_details> ::= "UPDATE PATIENT" <patient_id> <update_info>
 parseUpdatePatientDetails :: String -> Either String (PatientId, UpdateInfo)
 parseUpdatePatientDetails str =
-  let parts = words str
-   in if length parts >= 4 && parts !! 0 == "UPDATE" && parts !! 1 == "PATIENT"
-        then
-          let patientIdStr = parts !! 2
-              fieldNameStr = parts !! 3
-              fieldValueStr = unwords (drop 4 parts)
-           in case (parsePatientId patientIdStr, str2field fieldNameStr) of
-                (Right patientId, Right fieldName) -> Right (patientId, UpdateInfo fieldName fieldValueStr)
-                (Left errMsg, _) -> Left errMsg
-                (_, Left errMsg) -> Left errMsg
-        else Left "Incorrect syntax. Must be as follows: UPDATE PATIENT <patientId> <fieldName> <new_value>"
+  case verifyUpdatePatient str of
+    Right remainingStr -> 
+      case makePatientId remainingStr of
+        Right (patientId, restAfterId) ->
+          case parseFieldName restAfterId of
+            Right (fieldName, restAfterField) ->
+              let fieldValueStr = trim restAfterField  -- Remaining string is the new field value
+              in Right (patientId, UpdateInfo fieldName fieldValueStr)
+            Left errMsg -> Left ("Invalid field name: " ++ errMsg)
+        Left errMsg -> Left ("Error parsing patient ID: " ++ errMsg)
+    Left errMsg -> Left errMsg
 
 -- <age> ::= <integer>
-parseAge :: String -> Either String Age
-parseAge str =
-  case reads str of
-    [(x, "")] ->
-      case makeAge x of
-        Right age -> Right age
-        Left errMsg -> Left "Invalid age"
-    _ -> Left "Invalid age"
+
+
 
 -- <register_patient> ::= "REGISTER PATIENT" <patient_info>
 parseRegisterPatient :: String -> Either String PatientInfo
 parseRegisterPatient str =
-  let parts = words str
-   in if length parts >= 10 && head parts == "REGISTER" && parts !! 1 == "PATIENT"
-        then
-          let pidStr = parts !! 2
-              firstName = parts !! 3
-              lastName = parts !! 4
-              ageStr = parts !! 5
-              genderStr = parts !! 6
-              addressPart1 = parts !! 7
-              addressPart2 = parts !! 8
-              contactInfoStr = unwords (drop 9 parts)
-           in case (readEither pidStr :: Either String Int) of
-                Right pidInt ->
-                  case makePatientId pidInt of
-                    Right pid ->
-                      case (readEither ageStr :: Either String Int, makeGender genderStr) of
-                        (Right ageInt, Right gender) ->
-                          case makeAge ageInt of
-                            Right age -> 
-                              case makeName (firstName ++ " " ++ lastName) of
-                                Right name ->
-                                  case parseContactInfo (words contactInfoStr) of
-                                    Right contactInfo ->
-                                      case makeAddress (addressPart1 ++ " " ++ addressPart2) of
-                                        Right addr ->
-                                          Right (PatientInfo pid name age gender contactInfo addr)
-                                        Left errMsg -> Left ("Invalid address info: " ++ errMsg)
-                                    Left errMsg -> Left ("Invalid contact info: " ++ errMsg)
-                                Left errMsg -> Left ("Invalid name: " ++ errMsg)
-                            Left errMsg -> Left ("Error parsing age: " ++ errMsg)
-                        (Left errMsg, _) -> Left ("Invalid age: " ++ errMsg)
-                        (_, Left errMsg) -> Left ("Invalid gender: " ++ errMsg)
-                    Left errMsg -> Left ("Error reading the Id:" ++ errMsg)
-                Left errMsg -> Left ("Error reading Patient id: " ++ errMsg)
-        else Left "Format: <patient_id> <name> <age> <gender> <address1> <address2> <contact_info>"
+  case verifyRegisterPatient str of
+    Right remainingStr -> 
+      case makePatientId remainingStr of
+        Right (pid, restAfterId) ->
+          case makeName restAfterId of
+            Right (name, restAfterName) ->  
+              case parseAge restAfterName of
+                Right (age, restAfterAge) ->  
+                  case makeGender restAfterAge of
+                    Right (gender, restAfterGender) -> 
+                      case makeAddress restAfterGender of
+                        Right (addr, restAfterAddr) -> 
+                          case parseContactInfo restAfterAddr of
+                            Right (contInfo, _) -> 
+                              Right (PatientInfo pid name age gender contInfo addr)
+                            Left errMsg -> Left ("Invalid contact info: " ++ errMsg)
+                        Left errMsg -> Left ("Invalid address info: " ++ errMsg)
+                    Left errMsg -> Left ("Invalid gender: " ++ errMsg)
+                Left errMsg -> Left ("Invalid age: " ++ errMsg)
+            Left errMsg -> Left ("Error in name: " ++ errMsg)
+        Left errMsg -> Left ("Error reading the ID: " ++ errMsg)
+    Left errMsg -> Left ("Unknown command:asd " ++ errMsg)
 
 -- <command> ::= <register_patient> 
 --             | <book_appointment> 
@@ -929,17 +901,21 @@ parseRegisterPatient str =
 --             | <view_all_appointments>
 parseCommand :: String -> Either String Command
 parseCommand str =
-  let parts = words str
-   in case head parts of
-        "REGISTER" -> fmap RegisterPatient (parseRegisterPatient str)
-        "BOOK" -> fmap BookAppointment (parseAppointment str)
-        "UPDATE" -> fmap (uncurry UpdatePatientDetails) (parseUpdatePatientDetails str)
-        "SEARCH" -> fmap SearchPatient (parseSearchCriteria str)
-        "VIEW" -> 
-          if unwords (take 3 parts) == "VIEW ALL APPOINTMENTS"
-            then Right ViewAllAppointments
-            else Left "Invalid VIEW command"
-        _ -> Left "Unknown command"
+  case parseRegisterPatient str of
+    Right regDetails -> Right (RegisterPatient regDetails)
+    Left regErr -> case parseAppointment str of
+      Right appDetails -> Right (BookAppointment appDetails)
+      Left appErr -> case parseUpdatePatientDetails str of
+        Right (id, details) -> Right (UpdatePatientDetails id details)
+        Left updateErr -> case parseSearchCriteria str of
+          Right searchCriteria -> Right (SearchPatient searchCriteria)
+          Left searchErr -> case str of
+            "VIEW ALL APPOINTMENTS" -> Right ViewAllAppointments
+            _ -> Left $ "Unknown command. Errors encountered: "
+                     ++ "\n- Register: " ++ regErr
+                     ++ "\n- Appointment: " ++ appErr
+                     ++ "\n- Update: " ++ updateErr
+                     ++ "\n- Search: " ++ searchErr
 
 -- <system> ::= <command> | <command> <system>
 parseSystem :: String -> Either String System
@@ -950,30 +926,6 @@ parseSystem str =
 
 initialHospitalState :: HospitalState
 initialHospitalState = HospitalState [] []
-
--- executeCommand :: HospitalState -> Command -> Either String (HospitalState, String)
-
--- executeCommand hs ViewAllAppointments =
---   Right (hs, "All appointments:\n" ++ showAppointments (getAllAppointments hs))
-
--- executeCommand hs (BookAppointment app) =
---   let updatedState = addAppointment hs app
---   in Right (updatedState, "Appointment booked successfully. Updated state: " ++ show updatedState)
-
--- executeCommand hs (RegisterPatient pInfo) =
---   let updatedState = addPatientInfo hs pInfo
---   in Right (updatedState, "Patient registered successfully. Updated state: " ++ show updatedState)
-
--- executeCommand hs (UpdatePatientDetails pid updateInfo) = 
---   case updatePatientDetails hs pid updateInfo of
---     Right updatedState -> Right (updatedState, "Patient details updated successfully. Updated state: " ++ show updatedState)
---     Left errMsg -> Left errMsg
-
--- executeCommand hs (SearchPatient criteria) =
---   case searchPatient hs criteria of
---     Right result -> Right (hs, "Search result: " ++ show result)
---     Left errMsg -> Left errMsg
-
 
 getPatientInfo :: HospitalState -> PatientId -> Either String PatientInfo
 getPatientInfo hs pid =
@@ -1002,7 +954,7 @@ applyUpdate pInfo (UpdateInfo fieldName value) =
   case fieldName of
     NameField ->
       case makeName value of
-        Right name -> Right $ pInfo { patientName = name }
+        Right name -> Right $ pInfo { patientName = fst name }
         Left errMsg -> Left ("Invalid name: " ++ errMsg)
     AgeField ->
       case makeAge (read value) of
@@ -1010,15 +962,15 @@ applyUpdate pInfo (UpdateInfo fieldName value) =
         Left errMsg -> Left ("Invalid age, " ++ errMsg)
     GenderField ->
       case makeGender value of
-        Right gender -> Right $ pInfo { patientGender = gender }
+        Right gender -> Right $ pInfo { patientGender = fst gender }
         Left errMsg -> Left ("Invalid gender " ++ errMsg)
     ContactField ->
-      case parseContactInfo [value] of
-        Right contactInfo -> Right $ pInfo { patientContacts = contactInfo }
+      case parseContactInfo value of
+        Right contactInfo -> Right $ pInfo { patientContacts = fst contactInfo }
         Left errMsg -> Left errMsg
     AddressField ->
       case makeAddress value of
-        Right addr -> Right $ pInfo { patientAddress = addr }
+        Right addr -> Right $ pInfo { patientAddress = fst addr }
         Left errMsg -> Left errMsg
 
 
@@ -1044,22 +996,22 @@ matchesCriteria field value patient =
 
     GenderField ->
       case makeGender value of
-        Right gender -> patientGender patient == gender
+        Right gender -> patientGender patient == fst gender
         Left _ -> False
     
     NameField ->
       case makeName value of
-        Right nm -> patientName patient == nm
+        Right nm -> patientName patient == fst nm
         Left _ -> False
 
     AddressField ->
       case makeAddress value of
-        Right addr -> patientAddress patient == addr
+        Right addr -> patientAddress patient == fst addr
         Left _ -> False
 
     ContactField ->
-      case parseContactInfo [value] of
-        Right contactInfo -> patientContacts patient == contactInfo
+      case parseContactInfo value of
+        Right contactInfo -> patientContacts patient == fst contactInfo
         Left _ -> False
 
     _ -> False
@@ -1069,3 +1021,32 @@ getAllAppointments hs = appointments hs
 
 showAppointments :: [Appointment] -> String
 showAppointments apps = unlines (map show apps)
+
+verifyUpdatePatient :: String -> Either String String
+verifyUpdatePatient input =
+  let (prefix, remaining) = parseNWords input 2
+  in case prefix of
+       ["UPDATE", "PATIENT"] -> Right remaining
+       _ -> Left "Incorrect syntax. Must start with 'UPDATE PATIENT'."
+
+verifySearchPatient :: String -> Either String String
+verifySearchPatient input =
+  let (prefix, remaining) = parseNWords input 2
+  in case prefix of
+       ["SEARCH", "PATIENT"] -> Right remaining
+       _ -> Left "Incorrect syntax. Must start with 'SEARCH PATIENT'."
+
+verifyBookAppointment :: String -> Either String String
+verifyBookAppointment input =
+  let (prefix, remaining) = parseNWords input 2
+  in case prefix of
+       ["BOOK", "APPOINTMENT"] -> Right remaining
+       _ -> Left "Incorrect syntax. Must start with 'BOOK APPOINTMENT'."
+
+verifyRegisterPatient :: String -> Either String String
+verifyRegisterPatient input =
+  let trimmedInput = trim input
+      (firstTwoWords, remaining) = parseNWords trimmedInput 2  -- Extract the first two words
+  in if (unwords firstTwoWords) == "REGISTER PATIENT"
+      then Right remaining  -- Return the remaining string if valid
+      else Left "Invalid command: expected 'REGISTER PATIENT'"

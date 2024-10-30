@@ -20,15 +20,15 @@
   (major1) == 4 && (major2) <  17 || \
   (major1) == 4 && (major2) == 17 && (minor) <= 2)
 #endif /* MIN_VERSION_base */
-/* package doctest-0.22.10 */
+/* package doctest-0.23.0 */
 #ifndef VERSION_doctest
-#define VERSION_doctest "0.22.10"
+#define VERSION_doctest "0.23.0"
 #endif /* VERSION_doctest */
 #ifndef MIN_VERSION_doctest
 #define MIN_VERSION_doctest(major1,major2,minor) (\
   (major1) <  0 || \
-  (major1) == 0 && (major2) <  22 || \
-  (major1) == 0 && (major2) == 22 && (minor) <= 10)
+  (major1) == 0 && (major2) <  23 || \
+  (major1) == 0 && (major2) == 23 && (minor) <= 0)
 #endif /* MIN_VERSION_doctest */
 
 /* tool gcc-13 */
