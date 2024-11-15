@@ -2,14 +2,10 @@ Test suite fp2024-test: RUNNING...
 Tests
   Lib1 tests
     List of completions is not empty: OK
-    Register Patient Parsing:         FAIL
-      test/Spec.hs:21:
-      expected: Right (RegisterQuery (PatientInfo {patientId = PatientId 5, patientName = Name (FirstName "John") (LastName "Doe"), patientAge = Age 18, patientGender = Male, patientContacts = EmailContact (Email "example" "example.com"), patientAddress = Address "Washington DC"}))
-       but got: Left "Unknown command"
-      Use -p '/Register Patient Parsing/' to rerun this test only.
+    Register Patient Parsing:         OK
     Book appointment:                 OK
     Invalid Query Parsing:            OK
 
-1 out of 4 tests failed (0.00s)
-Test suite fp2024-test: FAIL
+All 4 tests passed (0.00s)
+Test suite fp2024-test: PASS
 Test suite logged to: /home/benas/Dokumentai/Universitetas/II kursas/Funkcinis Programavimas/fp-2024/dist-newstyle/build/x86_64-linux/ghc-9.4.7/fp2024-0.1.0.0/t/fp2024-test/test/fp2024-0.1.0.0-fp2024-test.log

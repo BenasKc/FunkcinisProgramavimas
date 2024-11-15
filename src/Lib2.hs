@@ -940,10 +940,13 @@ addPatientInfo :: HospitalState -> PatientInfo -> HospitalState
 addPatientInfo hs pInfo = hs { patientInfos = pInfo : patientInfos hs }
 
 updatePatientDetails :: HospitalState -> PatientId -> UpdateInfo -> Either String HospitalState
-updatePatientDetails hs pid updateInfo = do
-  pInfo <- getPatientInfo hs pid
-  updatedPInfo <- applyUpdate pInfo updateInfo
-  return $ hs { patientInfos = updateList (\p -> patientId p == pid) (const updatedPInfo) (patientInfos hs) }
+updatePatientDetails hs pid updateInfo = 
+  case getPatientInfo hs pid of
+    Right pInfo -> 
+      case applyUpdate pInfo updateInfo of
+        Right updatedPInfo -> Right ( hs { patientInfos = updateList (\p -> patientId p == pid) (const updatedPInfo) (patientInfos hs) })
+        Left err -> Left err
+    Left err -> Left err
 
 searchPatient :: HospitalState -> SearchCriteria -> Either String [PatientInfo]
 searchPatient hs (SearchCriteria fieldName value) =
