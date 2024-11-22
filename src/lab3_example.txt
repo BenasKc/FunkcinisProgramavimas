@@ -1,0 +1,17 @@
+BEGIN 
+REGISTER PATIENT 5 John Doe 18 Male Washington DC example@example.com;
+REGISTER PATIENT 6 Luke Reed 45 Male New York 87|6841305;
+SEARCH PATIENT Name = Luke Reed;
+REGISTER PATIENT 7 Martha Bronhs 58 Female Los Angeles oldemail@something.org;
+SEARCH PATIENT Gender = Female;
+UPDATE PATIENT 7 Name Martha Creox;
+SEARCH PATIENT Age = 58;
+BOOK APPOINTMENT 5 Dr Matt Newman Neurology 12-08-2024 12:35;
+BOOK APPOINTMENT 5 Dr Abraham Lebz Cardiology 01-04-2025 15:55;
+VIEW ALL APPOINTMENTS;
+END
+SAVE
+LOAD
+BEGIN
+VIEW ALL APPOINTMENTS;
+END

@@ -10,6 +10,16 @@
   (major1) == 0 && (major2) <  1 || \
   (major1) == 0 && (major2) == 1 && (minor) <= 0)
 #endif /* MIN_VERSION_fp2024 */
+/* package QuickCheck-2.15.0.1 */
+#ifndef VERSION_QuickCheck
+#define VERSION_QuickCheck "2.15.0.1"
+#endif /* VERSION_QuickCheck */
+#ifndef MIN_VERSION_QuickCheck
+#define MIN_VERSION_QuickCheck(major1,major2,minor) (\
+  (major1) <  2 || \
+  (major1) == 2 && (major2) <  15 || \
+  (major1) == 2 && (major2) == 15 && (minor) <= 0)
+#endif /* MIN_VERSION_QuickCheck */
 /* package async-2.2.5 */
 #ifndef VERSION_async
 #define VERSION_async "2.2.5"
@@ -50,6 +60,16 @@
   (major1) == 2 && (major2) <  5 || \
   (major1) == 2 && (major2) == 5 && (minor) <= 1)
 #endif /* MIN_VERSION_stm */
+/* package transformers-0.5.6.2 */
+#ifndef VERSION_transformers
+#define VERSION_transformers "0.5.6.2"
+#endif /* VERSION_transformers */
+#ifndef MIN_VERSION_transformers
+#define MIN_VERSION_transformers(major1,major2,minor) (\
+  (major1) <  0 || \
+  (major1) == 0 && (major2) <  5 || \
+  (major1) == 0 && (major2) == 5 && (minor) <= 6)
+#endif /* MIN_VERSION_transformers */
 
 /* tool gcc-13 */
 #ifndef TOOL_VERSION_gcc
