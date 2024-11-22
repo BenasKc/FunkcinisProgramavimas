@@ -52,5 +52,15 @@ Also were converted to strings
 
 To commands, a new function was added - view all appointments. Implemented to allow viewing state of program more in depth
 
+# Updates for the third lab work to Lib2
+
+Reused many functions which convert types to string,
+written in lab2
+Added formatDate, converts Date to string
+Added time2str, converts Time to string
+Added age2str, converts Age to String
+Added pid2str, converts PatientId to String
+Added parseQueryRem, which is exactly like parseQuery, but returns unfed remaining string which is used for further parsing
+
 ## Author
 Benas Kučinskas, 2024 PS, 2 year third semester student

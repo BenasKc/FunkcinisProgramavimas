@@ -50,6 +50,16 @@
   (major1) == 0 && (major2) <  10 || \
   (major1) == 0 && (major2) == 10 && (minor) <= 2)
 #endif /* MIN_VERSION_tasty_hunit */
+/* package tasty-quickcheck-0.11 */
+#ifndef VERSION_tasty_quickcheck
+#define VERSION_tasty_quickcheck "0.11"
+#endif /* VERSION_tasty_quickcheck */
+#ifndef MIN_VERSION_tasty_quickcheck
+#define MIN_VERSION_tasty_quickcheck(major1,major2,minor) (\
+  (major1) <  0 || \
+  (major1) == 0 && (major2) <  11 || \
+  (major1) == 0 && (major2) == 11 && (minor) <= 0)
+#endif /* MIN_VERSION_tasty_quickcheck */
 
 /* tool gcc-13 */
 #ifndef TOOL_VERSION_gcc

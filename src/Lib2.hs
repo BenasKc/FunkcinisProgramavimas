@@ -29,7 +29,21 @@ module Lib2
     Title(..),
     Department(..),
     Date(..),
-    Time(..) -- these exports are required for proper testing
+    Time(..), -- these exports are required for proper testing
+    parseCommand,
+    parseQueryRem,
+    parseNWords,
+    HospitalState(..),
+    pid2str,
+    formatDate,
+    time2str,
+    name2str,
+    age2str,
+    gender2str,
+    addr2str,
+    ci2str,
+    doctorName2str,
+    deptToStr
     ) where
 
 import Data.Char (ord)
@@ -65,12 +79,22 @@ data Query = RegisterQuery PatientInfo
 --             | <view_all_appointments>
 parseQuery :: String -> Either String Query
 parseQuery input = case parseCommand input of
-  Right (RegisterPatient pInfo) -> Right (RegisterQuery pInfo)
-  Right (BookAppointment app) -> Right (BookAppointmentQuery app)
-  Right (UpdatePatientDetails pid updateInfo) -> Right (UpdateDetailsQuery pid updateInfo)
-  Right (SearchPatient criteria) -> Right (SearchQuery criteria)
-  Right (ViewAllAppointments) -> Right (ViewAllAppointmentsQuery)
+  Right (RegisterPatient pInfo, rem) -> Right (RegisterQuery pInfo)
+  Right (BookAppointment app, rem) -> Right (BookAppointmentQuery app)
+  Right (UpdatePatientDetails pid updateInfo, rem) -> Right (UpdateDetailsQuery pid updateInfo)
+  Right (SearchPatient criteria, rem) -> Right (SearchQuery criteria)
+  Right (ViewAllAppointments, rem) -> Right (ViewAllAppointmentsQuery)
   Left errMsg -> Left errMsg
+
+parseQueryRem :: String -> Either String (Query, String)
+parseQueryRem input = case parseCommand input of
+  Right (RegisterPatient pInfo, rem) -> Right (RegisterQuery pInfo, rem)
+  Right (BookAppointment app, rem) -> Right (BookAppointmentQuery app, rem)
+  Right (UpdatePatientDetails pid updateInfo, rem) -> Right (UpdateDetailsQuery pid updateInfo, rem)
+  Right (SearchPatient criteria, rem) -> Right (SearchQuery criteria, rem)
+  Right (ViewAllAppointments, rem) -> Right (ViewAllAppointmentsQuery, rem)
+  Left errMsg -> Left errMsg
+
 
 -- | An entity which represents your program's state.
 -- Currently it has no constructors but you can introduce
@@ -247,8 +271,8 @@ parseNWords str n = go str [] 0
     go s acc count
       | count >= n = (reverse acc, s) 
       | otherwise =
-          let (word, rest) = span (/= ' ') s  -- Extract a word until a space
-              trimmedRest = dropWhile (== ' ') rest  -- Skip spaces after the word
+          let (word, rest) = span (\x -> x /= ' ' && x /= ';' && x /= '\n' && x /= '\r') s  -- Extract a word until a space
+              trimmedRest = dropWhile (== '\r') (dropWhile (== '\n') (dropWhile (== ';') (dropWhile (== ' ') rest)))  -- Skip spaces (WITH LIB3 semicolons and newlines too) after the word
           in if null word
                then go trimmedRest acc count  -- Continue if no word found
                else go trimmedRest (word : acc) (count + 1)  -- Add word to accumulator
@@ -636,7 +660,7 @@ makePhoneNumber (Left errMsg) _ = Left errMsg
 pn2str :: Either String PhoneNumber -> String
 pn2str (Right (PhoneNumber cc num)) =
   case cc2str (Right cc) of
-    Right ccStr -> "+" ++ ccStr ++ num 
+    Right ccStr -> ccStr ++ "|" ++ num 
     Left errMsg -> "Error: " ++ errMsg 
 pn2str (Left errMsg) = "Error: " ++ errMsg 
 
@@ -809,7 +833,7 @@ parsePatientId str =
     _ -> Left "Incorrect patient ID"
 
 -- <appointment_info> ::= <patient_id> <doctor_name> <department> <date> <time>
-parseAppointment :: String -> Either String Appointment
+parseAppointment :: String -> Either String (Appointment, String)
 parseAppointment str =
   case verifyBookAppointment str of
     Right remainingStr ->
@@ -824,9 +848,9 @@ parseAppointment str =
                       case parseDate afterDept of
                         Right (date, afterDate) ->
                           case parseTime afterDate of
-                            Right (time, _) ->
+                            Right (time, rem) ->
                               case makeDoctorName (Right title) firstName lastName of
-                                Right doctorName -> Right (Appointment pid doctorName dept date time)
+                                Right doctorName -> Right (Appointment pid doctorName dept date time, rem)
                                 Left errMsg -> Left ("Error creating DoctorName: " ++ errMsg)
                             Left errMsg -> Left ("Error parsing Time: " ++ errMsg)
                         Left errMsg -> Left ("Error parsing Date: " ++ errMsg)
@@ -836,21 +860,49 @@ parseAppointment str =
     Left errMsg -> Left ("Invalid command: " ++ errMsg)
 
 -- <search_criteria> ::= <field_name> "=" <value>
-parseSearchCriteria :: String -> Either String SearchCriteria
+parseSearchCriteria :: String -> Either String (SearchCriteria, String)
 parseSearchCriteria str =
   case verifySearchPatient str of
     Right remainingStr -> 
       case parseFieldName remainingStr of
         Right (fieldName, restAfterField) ->
-          let (equalsSign, restAfterEquals) = parseNWords restAfterField 1
-          in if (equalsSign !! 0) == "="
-             then Right (SearchCriteria fieldName (trim restAfterEquals))
-             else Left "Incorrect syntax: expected '=' after field name"
+          case fieldName of
+            NameField ->
+              let (values, restAfterValue) = parseNWords restAfterField 3
+              in if (values !! 0) == "="
+                then 
+                  Right ((SearchCriteria fieldName (unwords (drop 1 values))), restAfterValue)
+                else Left "Incorrect syntax: expected '=' after field name"
+            AgeField ->
+              let (values, restAfterValue) = parseNWords restAfterField 2
+              in if (values !! 0) == "="
+                then 
+                  Right ((SearchCriteria fieldName (values !! 1)), restAfterValue)
+                else Left "Incorrect syntax: expected '=' after field name"
+            GenderField ->
+              let (values, restAfterValue) = parseNWords restAfterField 2
+              in if (values !! 0) == "="
+                then 
+                  Right ((SearchCriteria fieldName (values !! 1)), restAfterValue)
+                else Left "Incorrect syntax: expected '=' after field name"
+            ContactField ->
+              let (values, restAfterValue) = parseNWords restAfterField 2
+              in if (values !! 0) == "="
+                then 
+                  Right ((SearchCriteria fieldName (values !! 1)), restAfterValue)
+                else Left "Incorrect syntax: expected '=' after field name"
+            AddressField ->
+              let (values, restAfterValue) = parseNWords restAfterField 3
+              in if (values !! 0) == "="
+                then 
+                  Right ((SearchCriteria fieldName (unwords (drop 1 values))), restAfterValue)
+                else Left "Incorrect syntax: expected '=' after field name"
+            _ -> Left "Unknown params for search"
         Left errMsg -> Left errMsg
     Left errMsg -> Left errMsg
 
 -- <update_patient_details> ::= "UPDATE PATIENT" <patient_id> <update_info>
-parseUpdatePatientDetails :: String -> Either String (PatientId, UpdateInfo)
+parseUpdatePatientDetails :: String -> Either String ((PatientId, UpdateInfo), String)
 parseUpdatePatientDetails str =
   case verifyUpdatePatient str of
     Right remainingStr -> 
@@ -858,8 +910,29 @@ parseUpdatePatientDetails str =
         Right (patientId, restAfterId) ->
           case parseFieldName restAfterId of
             Right (fieldName, restAfterField) ->
-              let fieldValueStr = trim restAfterField  -- Remaining string is the new field value
-              in Right (patientId, UpdateInfo fieldName fieldValueStr)
+              case fieldName of
+                NameField ->
+                  case parseNWords restAfterField 2 of
+                    (prior, rest) -> Right ((patientId, UpdateInfo fieldName (unwords prior)), rest)
+                    _              -> Left ("Error parsing arguments")
+                AgeField ->
+                  case parseNWords restAfterField 1 of
+                    ([prior], rest) -> Right ((patientId, UpdateInfo fieldName prior), rest)
+                    _              -> Left ("Error parsing arguments")
+                GenderField ->
+                  case parseNWords restAfterField 1 of
+                    ([prior], rest) -> Right ((patientId, UpdateInfo fieldName prior), rest)
+                    _              -> Left ("Error parsing arguments")
+                ContactField ->
+                  case parseNWords restAfterField 1 of
+                    ([prior], rest) -> Right ((patientId, UpdateInfo fieldName prior), rest)
+                    _              -> Left ("Error parsing arguments")
+                AddressField ->
+                  case parseNWords restAfterField 2 of
+                    (prior, rest) -> Right ((patientId, UpdateInfo fieldName (unwords prior)), rest)
+                    _              -> Left ("Error parsing arguments")
+                _ -> Left "Unknown params for search"
+              
             Left errMsg -> Left ("Invalid field name: " ++ errMsg)
         Left errMsg -> Left ("Error parsing patient ID: " ++ errMsg)
     Left errMsg -> Left errMsg
@@ -869,7 +942,7 @@ parseUpdatePatientDetails str =
 
 
 -- <register_patient> ::= "REGISTER PATIENT" <patient_info>
-parseRegisterPatient :: String -> Either String PatientInfo
+parseRegisterPatient :: String -> Either String (PatientInfo, String)
 parseRegisterPatient str =
   case verifyRegisterPatient str of
     Right remainingStr -> 
@@ -884,8 +957,8 @@ parseRegisterPatient str =
                       case makeAddress restAfterGender of
                         Right (addr, restAfterAddr) -> 
                           case parseContactInfo restAfterAddr of
-                            Right (contInfo, _) -> 
-                              Right (PatientInfo pid name age gender contInfo addr)
+                            Right (contInfo, rem) -> 
+                              Right (PatientInfo pid name age gender contInfo addr, rem)
                             Left errMsg -> Left ("Invalid contact info: " ++ errMsg)
                         Left errMsg -> Left ("Invalid address info: " ++ errMsg)
                     Left errMsg -> Left ("Invalid gender: " ++ errMsg)
@@ -899,18 +972,19 @@ parseRegisterPatient str =
 --             | <update_patient_details> 
 --             | <search_patient>
 --             | <view_all_appointments>
-parseCommand :: String -> Either String Command
+parseCommand :: String -> Either String (Command, String)
 parseCommand str =
   case parseRegisterPatient str of
-    Right regDetails -> Right (RegisterPatient regDetails)
+    Right (regDetails, rem) -> Right (RegisterPatient regDetails, rem)
     Left regErr -> case parseAppointment str of
-      Right appDetails -> Right (BookAppointment appDetails)
+      Right (appDetails, rem) -> Right (BookAppointment appDetails, rem)
       Left appErr -> case parseUpdatePatientDetails str of
-        Right (id, details) -> Right (UpdatePatientDetails id details)
+        Right ((id, details), rem) -> Right (UpdatePatientDetails id details, rem)
         Left updateErr -> case parseSearchCriteria str of
-          Right searchCriteria -> Right (SearchPatient searchCriteria)
-          Left searchErr -> case str of
-            "VIEW ALL APPOINTMENTS" -> Right ViewAllAppointments
+          Right (searchCriteria, rem) -> Right (SearchPatient searchCriteria, rem)
+          Left searchErr -> case parseViewAllAppointments str of
+            Right (rem) -> Right (ViewAllAppointments, rem)
+            Right _     -> Right (ViewAllAppointments, "")
             _ -> Left $ "Unknown command. Errors encountered: "
                      ++ "\n- Register: " ++ regErr
                      ++ "\n- Appointment: " ++ appErr
@@ -918,10 +992,10 @@ parseCommand str =
                      ++ "\n- Search: " ++ searchErr
 
 -- <system> ::= <command> | <command> <system>
-parseSystem :: String -> Either String System
-parseSystem str =
-  let commandStrings = lines str
-   in fmap System (mapM parseCommand commandStrings)
+--parseSystem :: String -> Either String System
+--parseSystem str =
+--  let commandStrings = lines str
+--   in fmap System (mapM parseCommand commandStrings)
 
 
 initialHospitalState :: HospitalState
@@ -1049,7 +1123,51 @@ verifyBookAppointment input =
 verifyRegisterPatient :: String -> Either String String
 verifyRegisterPatient input =
   let trimmedInput = trim input
-      (firstTwoWords, remaining) = parseNWords trimmedInput 2  -- Extract the first two words
+      (firstTwoWords, remaining) = parseNWords trimmedInput 2 
   in if (unwords firstTwoWords) == "REGISTER PATIENT"
-      then Right remaining  -- Return the remaining string if valid
+      then Right remaining 
       else Left "Invalid command: expected 'REGISTER PATIENT'"
+
+parseViewAllAppointments :: String -> Either String (String)
+parseViewAllAppointments str = 
+  case parseNWords str 3 of
+    (wrd, remains) ->
+      if (length wrd) == 3
+        then
+          case wrd !! 0 of
+            "VIEW" ->
+              case wrd !! 1 of
+                "ALL" ->
+                  case wrd !! 2 of
+                    "APPOINTMENTS;" -> Right (remains)
+                    "APPOINTMENTS"  -> Right (remains)
+                    _ -> Left "Incorrect ViewAllAppointments command"
+                _ -> Left "Incorrect ViewAllAppointments command"
+            _ -> Left "Incorrect ViewAllAppointments command"
+      else 
+        Left "Incorrect ViewAllAppointments command"
+    _ -> Left "Incorrect ViewAllAppointments command"
+
+
+pid2str :: PatientId -> String
+pid2str pid =
+  case pid of
+    PatientId p -> show p
+
+age2str :: Age -> String
+age2str a =
+  case a of
+    Age ag -> show ag
+
+time2str :: Time -> String
+time2str (Time hours minutes) =
+  formatTime hours minutes
+
+
+
+formatDate :: Date -> String
+formatDate (Date day month year) =
+  let formattedDay = if day < 10 then '0' : show day else show day
+      formattedMonth = if month < 10 then '0' : show month else show month
+      formattedYear = show year
+   in formattedDay ++ "-" ++ formattedMonth ++ "-" ++ formattedYear
