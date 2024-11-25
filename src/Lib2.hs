@@ -5,6 +5,7 @@ module Lib2
     State(..),
     emptyState,
     stateTransition,
+    PhoneNumber(..),
     PatientInfo(..),
     Name(..),
     PatientId(..),
@@ -28,6 +29,8 @@ module Lib2
     DoctorName(..),
     Title(..),
     Department(..),
+    Digit(..),
+    CountryCode(..),
     Date(..),
     Time(..), -- these exports are required for proper testing
     parseCommand,
@@ -43,7 +46,7 @@ module Lib2
     addr2str,
     ci2str,
     doctorName2str,
-    deptToStr
+    deptToStr,
     ) where
 
 import Data.Char (ord)
@@ -533,9 +536,9 @@ deptToStr Cardiology = "Cardiology"
 deptToStr Neurology = "Neurology"
 deptToStr Orthopedics = "Orthopedics"
 deptToStr Pediatrics = "Pediatrics"
-deptToStr Critical_Care = "Critical Care"
-deptToStr General_Surgery = "General Surgery"
-deptToStr Infectious_Diseases = "Infectious Diseases"
+deptToStr Critical_Care = "Critical_Care"
+deptToStr General_Surgery = "General_Surgery"
+deptToStr Infectious_Diseases = "Infectious_Diseases"
 deptToStr Oncology = "Oncology"
 
 strToDept :: String -> Either String (Department, String)
@@ -547,9 +550,9 @@ strToDept input =
        "Neurology"           -> Right (Neurology, remaining)
        "Orthopedics"        -> Right (Orthopedics, remaining)
        "Pediatrics"         -> Right (Pediatrics, remaining)
-       "Critical Care"      -> Right (Critical_Care, remaining)
-       "General Surgery"     -> Right (General_Surgery, remaining)
-       "Infectious Diseases" -> Right (Infectious_Diseases, remaining)
+       "Critical_Care"      -> Right (Critical_Care, remaining)
+       "General_Surgery"     -> Right (General_Surgery, remaining)
+       "Infectious_Diseases" -> Right (Infectious_Diseases, remaining)
        "Oncology"           -> Right (Oncology, remaining)
        _                     -> Left $ "Invalid department: " ++ (deptPart !! 0)
 
