@@ -8,7 +8,8 @@ module Lib3
     marshallState,
     renderStatements,
     parseSequentially,
-    parseUntilSemicolon
+    parseUntilSemicolon,
+    Statements(..)
     ) where
 
 import Control.Concurrent ( Chan, readChan, writeChan, newChan )
