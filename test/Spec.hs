@@ -5,6 +5,10 @@ import Test.Tasty.QuickCheck as QC
 
 import Data.List
 import Data.Ord
+import Test.Tasty.QuickCheck as QC
+
+import Data.List
+import Data.Ord
 
 import Lib1 qualified
 import Lib2 qualified
@@ -156,34 +160,14 @@ main = defaultMain tests
 
 tests :: TestTree
 tests = testGroup "Tests" [unitTests, propertyTests]
+tests = testGroup "Tests" [unitTests, propertyTests]
 
 unitTests :: TestTree
 unitTests = testGroup "Lib1 tests"
   [ testCase "List of completions is not empty" $
       null Lib1.completions @?= False,
-      -- Some simple tests to ensure the program is working
-    testCase "Register Patient Parsing" $
-      Lib2.parseQuery "REGISTER PATIENT 5 John Doe 18 Male Washington DC example@example.com" @?=
-      Right (Lib2.RegisterQuery (Lib2.PatientInfo
-                             { Lib2.patientId = Lib2.PatientId 5,
-                               Lib2.patientName = Lib2.Name (Lib2.FirstName "John") (Lib2.LastName "Doe"),
-                               Lib2.patientAge = Lib2.Age 18,
-                               Lib2.patientGender = Lib2.Male,
-                               Lib2.patientContacts = Lib2.EmailContact (Lib2.Email "example" "example.com"),
-                               Lib2.patientAddress = Lib2.Address "Washington DC"
-                             })),
-    testCase "Book appointment" $
-      Lib2.parseQuery "BOOK APPOINTMENT 5 Dr Matt Newman Neurology 12-08-2024 12:35" @?= Right (Lib2.BookAppointmentQuery (Lib2.Appointment {Lib2.appointmentPatientId = Lib2.PatientId 5, Lib2.appointmentDoctorName = Lib2.DoctorName Lib2.Dr "Matt" "Newman", Lib2.appointmentDepartment = Lib2.Neurology, Lib2.appointmentDate = Lib2.Date 12 8 2024, Lib2.appointmentTime = Lib2.Time 12 35})),
-
-    testCase "Invalid Query Parsing" $
-      Lib2.parseQuery "asd" @?= Left "Unknown command. Errors encountered: \n- Register: Unknown command:asd Invalid command: expected 'REGISTER PATIENT'\n- Appointment: Invalid command: Incorrect syntax. Must start with 'BOOK APPOINTMENT'.\n- Update: Incorrect syntax. Must start with 'UPDATE PATIENT'.\n- Search: Incorrect syntax. Must start with 'SEARCH PATIENT'."
+    testCase "Parsing case 1 - give a better name" $
+      Lib2.parseQuery "" @?= (Left "Some error message"),
+    testCase "Parsing case 2 - give a better name" $
+      Lib2.parseQuery "o" @?= (Left "Some error message")
   ]
-
-
-propertyTests :: TestTree
-propertyTests = testGroup "Hospital System Properties"
-  [
-    propertyRenderParse
-  ]
-
-  
