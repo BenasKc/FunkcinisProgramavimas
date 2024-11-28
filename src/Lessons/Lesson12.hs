@@ -16,8 +16,8 @@ type MyDomain = Free MyDomainAlgebra
 
 -- >>> id 5
 -- 5
--- >>> id "labas"
--- "labas"
+-- >>> id "labags"
+-- "labags"
 load :: MyDomain ()
 load = liftF $ Load id
 

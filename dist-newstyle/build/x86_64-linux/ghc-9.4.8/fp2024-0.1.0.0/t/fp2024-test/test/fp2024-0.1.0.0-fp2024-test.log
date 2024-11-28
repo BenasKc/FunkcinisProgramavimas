@@ -6,9 +6,9 @@ Tests
     Book appointment:                         OK
     Invalid Query Parsing:                    OK
   Hospital System Properties
-    renderStatements . parseStatements == id: OK (0.29s)
+    renderStatements . parseStatements == id: OK (0.28s)
       +++ OK, passed 100 tests.
 
-All 5 tests passed (0.29s)
+All 5 tests passed (0.28s)
 Test suite fp2024-test: PASS
 Test suite logged to: /workspaces/fp-2024/dist-newstyle/build/x86_64-linux/ghc-9.4.8/fp2024-0.1.0.0/t/fp2024-test/test/fp2024-0.1.0.0-fp2024-test.log

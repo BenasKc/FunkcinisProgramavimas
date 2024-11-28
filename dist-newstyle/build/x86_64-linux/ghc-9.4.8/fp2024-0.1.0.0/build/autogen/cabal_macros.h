@@ -40,6 +40,16 @@
   (major1) == 4 && (major2) <  17 || \
   (major1) == 4 && (major2) == 17 && (minor) <= 2)
 #endif /* MIN_VERSION_base */
+/* package free-5.2 */
+#ifndef VERSION_free
+#define VERSION_free "5.2"
+#endif /* VERSION_free */
+#ifndef MIN_VERSION_free
+#define MIN_VERSION_free(major1,major2,minor) (\
+  (major1) <  5 || \
+  (major1) == 5 && (major2) <  2 || \
+  (major1) == 5 && (major2) == 2 && (minor) <= 0)
+#endif /* MIN_VERSION_free */
 /* package random-1.2.1.2 */
 #ifndef VERSION_random
 #define VERSION_random "1.2.1.2"
@@ -60,6 +70,16 @@
   (major1) == 2 && (major2) <  5 || \
   (major1) == 2 && (major2) == 5 && (minor) <= 1)
 #endif /* MIN_VERSION_stm */
+/* package strict-0.5.1 */
+#ifndef VERSION_strict
+#define VERSION_strict "0.5.1"
+#endif /* VERSION_strict */
+#ifndef MIN_VERSION_strict
+#define MIN_VERSION_strict(major1,major2,minor) (\
+  (major1) <  0 || \
+  (major1) == 0 && (major2) <  5 || \
+  (major1) == 0 && (major2) == 5 && (minor) <= 1)
+#endif /* MIN_VERSION_strict */
 /* package transformers-0.5.6.2 */
 #ifndef VERSION_transformers
 #define VERSION_transformers "0.5.6.2"

@@ -1,4 +1,35 @@
 END
+VIEW ALL APPOINTMENTS;
+BEGIN
+:paste
+LOAD
+SAVE
+END
+VIEW ALL APPOINTMENTS;
+BOOK APPOINTMENT 5 Dr Abraham Lebz Cardiology 01-04-2025 15:55;
+BOOK APPOINTMENT 5 Dr Matt Newman Neurology 12-08-2024 12:35;
+SEARCH PATIENT Age = 58;
+UPDATE PATIENT 7 Name Martha Creox;
+SEARCH PATIENT Gender = Female;
+REGISTER PATIENT 7 Martha Bronhs 58 Female Los Angeles oldemail@something.org;
+SEARCH PATIENT Name = Luke Reed;
+REGISTER PATIENT 6 Luke Reed 45 Male New York 87|6841305;
+REGISTER PATIENT 5 John Doe 18 Male Washington DC example@example.com;
+BEGIN 
+:paste
+END
+VIEW ALL APPOINTMENTS;
+BOOK APPOINTMENT 5 Dr Abraham Lebz Cardiology 01-04-2025 15:55;
+BOOK APPOINTMENT 5 Dr Matt Newman Neurology 12-08-2024 12:35;
+SEARCH PATIENT Age = 58;
+UPDATE PATIENT 7 Name Martha Creox;
+SEARCH PATIENT Gender = Female;
+REGISTER PATIENT 7 Martha Bronhs 58 Female Los Angeles oldemail@something.org;
+SEARCH PATIENT Name = Luke Reed;
+REGISTER PATIENT 6 Luke Reed 45 Male New York 87|6841305;
+REGISTER PATIENT 5 John Doe 18 Male Washington DC example@example.com;
+BEGIN 
+END
 BOOK APPOINTMENT 24 Dr rtlsloibmpwsisnje myuxfgnajufayymkdufzlrws Cardiology 31-06-2029 08:16;
 BEGIN
 :paste
@@ -67,34 +98,3 @@ BEGIN
 END
 REGISTER PATIENT 3 l d 40 Male s s c@l;
 BEGIN
-:paste
-END
-REGISTER PATIENT 1 f s 72 Other v i 81|5;
-BEGIN
-:paste
-END
-REGISTER PATIENT 1 f s 72 Other v i 81|g;
-BEGIN
-END
-REGISTER PATIENT 1 f s 72 Other v i 81|g;
-BEGIN
-:paste
-END
-REGISTER PATIENT 1 f s 72 Other v i 81;
-BEGIN
-:paste
-END
-REGISTER PATIENT 7 Martha Bronhs 58 Female Los Angeles oldemail@something.org;
-BEGIN
-:paste
-REGISTER PATIENT 7 Martha Bronhs 58 Female Los Angeles oldemail@something.org;
-END
-BOOK APPOINTMENT 1 Prof m o Orthopedics 19-06-1966 12:56;
-BEGIN
-:paste
-END
-BOOK APPOINTMENT (-1) Prof m o Orthopedics 19-06-1966 12:56;
-BEGIN
-:paste
-END
-;
