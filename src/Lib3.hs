@@ -9,7 +9,8 @@ module Lib3
     renderStatements,
     parseSequentially,
     parseUntilSemicolon,
-    Statements(..)
+    Statements(..),
+    Command(..)
     ) where
 
 import Control.Concurrent ( Chan, readChan, writeChan, newChan )
