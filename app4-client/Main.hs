@@ -41,7 +41,7 @@ interpretSingle (Free cmd) = do
             interpretSingle (next ())
         Batch cmds next -> do
             putStrLn "Sending BATCH commands..."
-            let body = cs $ (unlines cmds) :: ByteString
+            let body = cs $ ("BEGIN " ++ unlines cmds ++ " END") :: ByteString
             resp <- post "http://localhost:3000/upload" (cs body :: ByteString)
             putStrLn $ "Response: " ++ cs (resp ^. responseBody)
             interpretSingle (next ())
@@ -74,7 +74,7 @@ interpretBatch = go []
     flushBatch [] = return ()
     flushBatch cmds = do
         putStrLn "Sending accumulated BATCH commands..."
-        let body = cs $ (unlines cmds) :: ByteString
+        let body = cs $ ("BEGIN " ++ unlines cmds ++ " END") :: ByteString
         resp <- post "http://localhost:3000/upload" (cs body :: ByteString)
         putStrLn $ "Response: " ++ cs (resp ^. responseBody)
 
@@ -96,23 +96,21 @@ interpretInMemory (Free cmd) = do
 exampleProgram :: HospitalRegDomain ()
 exampleProgram = do
     load
-    batch ["BEGIN VIEW ALL APPOINTMENTS; END"]
-    batch ["BEGIN \
-            \ REGISTER PATIENT 5 John Doe 18 Male Washington DC example@example.com; \
+    batch ["VIEW ALL APPOINTMENTS;", "VIEW ALL APPOINTMENTS; "]
+    batch ["REGISTER PATIENT 5 John Doe 18 Male Washington DC example@example.com; \
             \ REGISTER PATIENT 6 Luke Reed 45 Male New York 87|6841305; \
             \ SEARCH PATIENT Name = Luke Reed; \
             \ REGISTER PATIENT 7 Martha Bronhs 58 Female Los Angeles oldemail@something.org; \
-            \ SEARCH PATIENT Gender = Female; \
-            \ END", "BEGIN UPDATE PATIENT 7 Name Martha Creox; END"] 
+            \ SEARCH PATIENT Gender = Female;", "UPDATE PATIENT 7 Name Martha Creox;"] 
     save 
-    batch ["BEGIN SEARCH PATIENT Age = 58; \
+    batch ["SEARCH PATIENT Age = 58; \
             \ BOOK APPOINTMENT 5 Dr Matt Newman Neurology 12-08-2024 12:35; \
             \ BOOK APPOINTMENT 5 Dr Abraham Lebz Cardiology 01-04-2025 15:55; \
             \ VIEW ALL APPOINTMENTS; \
-            \ END"]
+            \"]
     save
     load
-    batch ["BEGIN VIEW ALL APPOINTMENTS; END"]
+    batch ["VIEW ALL APPOINTMENTS;"]
     save
 
 main :: IO ()

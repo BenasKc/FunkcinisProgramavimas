@@ -60,6 +60,16 @@
   (major1) == 0 && (major2) <  4 || \
   (major1) == 0 && (major2) == 4 && (minor) <= 0)
 #endif /* MIN_VERSION_string_conversions */
+/* package transformers-0.5.6.2 */
+#ifndef VERSION_transformers
+#define VERSION_transformers "0.5.6.2"
+#endif /* VERSION_transformers */
+#ifndef MIN_VERSION_transformers
+#define MIN_VERSION_transformers(major1,major2,minor) (\
+  (major1) <  0 || \
+  (major1) == 0 && (major2) <  5 || \
+  (major1) == 0 && (major2) == 5 && (minor) <= 6)
+#endif /* MIN_VERSION_transformers */
 
 /* tool gcc-13 */
 #ifndef TOOL_VERSION_gcc
